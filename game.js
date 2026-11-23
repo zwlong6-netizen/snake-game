@@ -1,6 +1,7 @@
 /**
- * Snake 2077 - 经典贪吃蛇 Web 实现
+ * Snake Classic - 经典贪吃蛇 Web 实现
  * 纯原生 JavaScript，无第三方依赖
+ * 遵循 UI-DESIGN.md 设计规范
  */
 
 // ========================
@@ -35,7 +36,6 @@ class SoundFX {
     return this.muted;
   }
 
-  // 基础合成音辅助函数
   playTone(freq, type = 'sine', duration = 0.1, gainVal = 0.15) {
     if (this.muted || !this.ctx) return;
     this.resume();
@@ -56,7 +56,6 @@ class SoundFX {
     osc.stop(this.ctx.currentTime + duration);
   }
 
-  // 吃普通食物：清脆的拾取双音
   playEat() {
     if (this.muted || !this.ctx) return;
     this.resume();
@@ -78,17 +77,15 @@ class SoundFX {
     osc.start(now);
     osc.stop(now + 0.1);
 
-    // 触发震动（若移动端支持）
     if ('vibrate' in navigator) {
       try { navigator.vibrate(25); } catch (_) {}
     }
   }
 
-  // 吃金色特殊食物：华丽三和弦上升琶音
   playBonusEat() {
     if (this.muted || !this.ctx) return;
     this.resume();
-    const notes = [659.25, 830.61, 987.77, 1318.51]; // E5, G#5, B5, E6
+    const notes = [659.25, 830.61, 987.77, 1318.51];
     notes.forEach((freq, index) => {
       setTimeout(() => {
         this.playTone(freq, 'sine', 0.15, 0.22);
@@ -100,7 +97,6 @@ class SoundFX {
     }
   }
 
-  // 特殊食物刷新出现：魔法闪烁音
   playBonusSpawn() {
     if (this.muted || !this.ctx) return;
     this.resume();
@@ -112,7 +108,6 @@ class SoundFX {
     });
   }
 
-  // 撞毁/死亡：低沉衰减噪声
   playGameOver() {
     if (this.muted || !this.ctx) return;
     this.resume();
@@ -157,7 +152,7 @@ class ParticleSystem {
         y: y,
         vx: Math.cos(angle) * velocity,
         vy: Math.sin(angle) * velocity,
-        size: Math.random() * 3 + 2,
+        size: Math.random() * 2.5 + 1.5,
         color: color,
         life: 1.0,
         decay: Math.random() * 0.03 + 0.03
@@ -185,7 +180,7 @@ class ParticleSystem {
       ctx.globalAlpha = Math.max(0, p.life);
       ctx.fillStyle = p.color;
       ctx.shadowColor = p.color;
-      ctx.shadowBlur = 8;
+      ctx.shadowBlur = 6;
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
       ctx.fill();
@@ -206,15 +201,15 @@ class SnakeGame {
     this.canvas = document.getElementById('gameCanvas');
     this.ctx = this.canvas.getContext('2d');
 
-    // 虚拟网格常量 (PRD: 20x20 标准网格)
+    // 虚拟网格常量 (UI-DESIGN: 20x20 标准网格, 400px x 400px -> 每格 20px)
     this.GRID_SIZE = 20;
-    this.CELL_SIZE = this.canvas.width / this.GRID_SIZE; // 600 / 20 = 30px
+    this.CELL_SIZE = this.canvas.width / this.GRID_SIZE; // 400 / 20 = 20px
 
     // 音效与动效
     this.sound = new SoundFX();
     this.particles = new ParticleSystem();
 
-    // 难度速度配置 (毫秒/步)
+    // 难度配置
     this.DIFFICULTY_CONFIG = {
       easy: { baseSpeed: 200, dynamicSpeed: false, obstacles: 0, label: '简单' },
       normal: { baseSpeed: 150, dynamicSpeed: true, minSpeed: 80, obstacles: 0, label: '普通' },
@@ -222,37 +217,28 @@ class SnakeGame {
     };
 
     // 游戏状态
-    this.state = 'INIT'; // 'INIT', 'RUNNING', 'PAUSED', 'GAMEOVER'
+    this.state = 'INIT';
     this.difficulty = 'normal';
     this.score = 0;
     this.bestScore = 0;
     this.speed = 150;
     this.lastStepTime = 0;
 
-    // 游戏实体
+    // 实体
     this.snake = [];
     this.dir = { x: 1, y: 0 };
     this.nextDir = { x: 1, y: 0 };
-    this.food = null; // 普通红苹果
-    this.bonusFood = null; // 特殊金果 {x, y, timeLeft, maxTime}
-    this.obstacles = []; // 困难模式下的障碍物 [{x, y}]
-
-    // 浮动吃分文字动效
+    this.food = null;
+    this.bonusFood = null;
+    this.obstacles = [];
     this.floatingTexts = [];
 
-    // 缓存与持久化数据初始化
+    // 初始化
     this.loadStorage();
-
-    // 绑定 DOM 元素
     this.initDOMElements();
-
-    // 注册输入事件
     this.initEventListeners();
-
-    // 渲染初始画面
     this.render();
 
-    // 启动动画循环（用于平滑绘制粒子、倒计时与动效）
     requestAnimationFrame((ts) => this.gameLoop(ts));
   }
 
@@ -273,6 +259,7 @@ class SnakeGame {
     this.elResumeBtn = document.getElementById('resumeBtn');
     this.elRestartFromPauseBtn = document.getElementById('restartFromPauseBtn');
     this.elRestartBtn = document.getElementById('restartBtn');
+    this.elGameOverLeaderboardBtn = document.getElementById('gameOverLeaderboardBtn');
 
     this.elFinalScore = document.getElementById('finalScore');
     this.elFinalDifficulty = document.getElementById('finalDifficulty');
@@ -282,7 +269,7 @@ class SnakeGame {
     this.elBonusTimerText = document.getElementById('bonusTimerText');
     this.elBonusProgressBar = document.getElementById('bonusProgressBar');
 
-    // 模态框
+    // 排行榜模态框
     this.elModal = document.getElementById('leaderboardModal');
     this.elModalBackdrop = document.getElementById('modalBackdrop');
     this.elCloseModalBtn = document.getElementById('closeModalBtn');
@@ -290,7 +277,6 @@ class SnakeGame {
     this.elEmptyLeaderboard = document.getElementById('emptyLeaderboard');
     this.elClearLeaderboard = document.getElementById('clearLeaderboardBtn');
 
-    // 更新界面最高分展示
     this.elBestScore.textContent = this.bestScore;
   }
 
@@ -323,9 +309,8 @@ class SnakeGame {
     };
 
     this.leaderboard.push(newEntry);
-    // 按分数降序，相同分数按时间最新
     this.leaderboard.sort((a, b) => b.score - a.score);
-    this.leaderboard = this.leaderboard.slice(0, 5); // 保留 TOP 5
+    this.leaderboard = this.leaderboard.slice(0, 5);
 
     try {
       localStorage.setItem('snake_leaderboard_top5', JSON.stringify(this.leaderboard));
@@ -335,10 +320,8 @@ class SnakeGame {
   }
 
   initEventListeners() {
-    // 键盘控制
     window.addEventListener('keydown', (e) => this.handleKeyDown(e));
 
-    // 难度切换
     this.elDifficulty.addEventListener('change', (e) => {
       this.difficulty = e.target.value;
       if (this.state === 'INIT' || this.state === 'GAMEOVER') {
@@ -346,14 +329,12 @@ class SnakeGame {
       }
     });
 
-    // 声音切换
     this.elSoundToggle.addEventListener('click', () => {
       const isMuted = this.sound.toggleMute();
       this.elSoundIcon.textContent = isMuted ? '🔇' : '🔊';
       this.elSoundToggle.classList.toggle('muted', isMuted);
     });
 
-    // 按钮动作
     this.elStartBtn.addEventListener('click', () => this.startGame());
     this.elResumeBtn.addEventListener('click', () => this.resumeGame());
     this.elRestartFromPauseBtn.addEventListener('click', () => {
@@ -365,7 +346,10 @@ class SnakeGame {
       this.startGame();
     });
 
-    // 排行榜展示
+    if (this.elGameOverLeaderboardBtn) {
+      this.elGameOverLeaderboardBtn.addEventListener('click', () => this.openLeaderboard());
+    }
+
     this.elLeaderboardBtn.addEventListener('click', () => this.openLeaderboard());
     this.elCloseModalBtn.addEventListener('click', () => this.closeLeaderboard());
     this.elModalBackdrop.addEventListener('click', () => this.closeLeaderboard());
@@ -377,7 +361,7 @@ class SnakeGame {
       }
     });
 
-    // 移动端虚拟按键 (D-Pad)
+    // 虚拟按键绑定
     const bindDpad = (id, fn) => {
       const btn = document.getElementById(id);
       if (!btn) return;
@@ -395,7 +379,7 @@ class SnakeGame {
     bindDpad('dpadRight', () => this.changeDirection(1, 0));
     bindDpad('dpadPause', () => this.togglePause());
 
-    // 触屏滑动手势 (Swipe) 监听
+    // 触屏滑动监听
     let touchStartX = 0;
     let touchStartY = 0;
     const canvasWrap = document.querySelector('.canvas-wrapper');
@@ -418,14 +402,11 @@ class SnakeGame {
       const absDx = Math.abs(dx);
       const absDy = Math.abs(dy);
 
-      // 最小触发滑动阀值 25px
       if (Math.max(absDx, absDy) > 25) {
         if (absDx > absDy) {
-          // 水平滑动
           if (dx > 0) this.changeDirection(1, 0);
           else this.changeDirection(-1, 0);
         } else {
-          // 垂直滑动
           if (dy > 0) this.changeDirection(0, 1);
           else this.changeDirection(0, -1);
         }
@@ -434,13 +415,11 @@ class SnakeGame {
   }
 
   handleKeyDown(e) {
-    // 快捷键: 音效切换 M
     if (e.key === 'm' || e.key === 'M') {
       this.elSoundToggle.click();
       return;
     }
 
-    // 空格键暂停/继续或开始
     if (e.code === 'Space') {
       e.preventDefault();
       if (this.state === 'INIT' || this.state === 'GAMEOVER') {
@@ -452,7 +431,6 @@ class SnakeGame {
       return;
     }
 
-    // 方向键控制
     switch (e.key) {
       case 'ArrowUp':
       case 'w':
@@ -483,12 +461,8 @@ class SnakeGame {
 
   changeDirection(x, y) {
     if (this.state !== 'RUNNING') return;
-
-    // 防止反向掉头自杀（例如正在向右移动时，按左键无效）
     if (x !== 0 && this.dir.x !== 0 && x === -this.dir.x) return;
     if (y !== 0 && this.dir.y !== 0 && y === -this.dir.y) return;
-
-    // 将预定方向存入 nextDir，在下一次物理步进时生效，避免同一步进内连续按键自杀
     this.nextDir = { x, y };
   }
 
@@ -498,7 +472,6 @@ class SnakeGame {
     this.score = 0;
     this.elCurrentScore.textContent = '0';
 
-    // 初始蛇身居中，向右运动，长度 3
     const startX = 6;
     const startY = 10;
     this.snake = [
@@ -514,7 +487,6 @@ class SnakeGame {
     this.particles.clear();
     this.floatingTexts = [];
 
-    // 生成障碍物 (困难模式 3 个障碍)
     this.obstacles = [];
     if (config.obstacles > 0) {
       for (let i = 0; i < config.obstacles; i++) {
@@ -523,7 +495,6 @@ class SnakeGame {
       }
     }
 
-    // 生成首个普通食物
     this.spawnFood();
   }
 
@@ -556,15 +527,14 @@ class SnakeGame {
     this.state = 'GAMEOVER';
     this.sound.playGameOver();
 
-    // 蛇头爆炸效果
     const head = this.snake[0];
     if (head) {
       this.particles.spawn(
         head.x * this.CELL_SIZE + this.CELL_SIZE / 2,
         head.y * this.CELL_SIZE + this.CELL_SIZE / 2,
-        '#ff3366',
-        30,
-        5
+        '#f43f5e',
+        25,
+        4.5
       );
     }
 
@@ -572,7 +542,6 @@ class SnakeGame {
     this.showGameOverScreen(isNewBest);
   }
 
-  // 随机生成空坐标（避开蛇身、障碍物、食物）
   getRandomEmptyPosition() {
     const occupied = new Set();
     this.snake.forEach(seg => occupied.add(`${seg.x},${seg.y}`));
@@ -601,9 +570,8 @@ class SnakeGame {
     }
   }
 
-  // 尝试触发金色特殊食物（约 25% 几率在吃普通食物后刷出）
   trySpawnBonusFood() {
-    if (this.bonusFood) return; // 场上已有则不刷
+    if (this.bonusFood) return;
 
     if (Math.random() < 0.28) {
       const pos = this.getRandomEmptyPosition();
@@ -611,7 +579,7 @@ class SnakeGame {
         this.bonusFood = {
           x: pos.x,
           y: pos.y,
-          timeLeft: 5.0, // 5秒倒计时
+          timeLeft: 5.0,
           maxTime: 5.0
         };
         this.sound.playBonusSpawn();
@@ -631,9 +599,6 @@ class SnakeGame {
     });
   }
 
-  // ========================
-  // 核心运动步进
-  // ========================
   step() {
     this.dir = this.nextDir;
     const head = this.snake[0];
@@ -642,7 +607,6 @@ class SnakeGame {
       y: head.y + this.dir.y
     };
 
-    // 1. 撞墙判定 (硬碰撞)
     if (
       newHead.x < 0 ||
       newHead.x >= this.GRID_SIZE ||
@@ -653,7 +617,6 @@ class SnakeGame {
       return;
     }
 
-    // 2. 撞自身身体判定
     for (let i = 0; i < this.snake.length; i++) {
       if (newHead.x === this.snake[i].x && newHead.y === this.snake[i].y) {
         this.gameOver();
@@ -661,7 +624,6 @@ class SnakeGame {
       }
     }
 
-    // 3. 撞静态障碍物判定 (Hard 模式)
     for (const obs of this.obstacles) {
       if (newHead.x === obs.x && newHead.y === obs.y) {
         this.gameOver();
@@ -669,35 +631,33 @@ class SnakeGame {
       }
     }
 
-    // 前进：插入新蛇头
     this.snake.unshift(newHead);
-
     let ateFood = false;
 
-    // 4. 判定是否吃到普通红苹果 (+10分)
+    // 吃普通红苹果
     if (this.food && newHead.x === this.food.x && newHead.y === this.food.y) {
       ateFood = true;
       this.score += 10;
       this.elCurrentScore.textContent = this.score;
+
+      // 4.1 得分微弹动效
+      this.elCurrentScore.classList.add('score-bump');
+      setTimeout(() => this.elCurrentScore.classList.remove('score-bump'), 150);
+
       this.sound.playEat();
 
-      // 吃食物粒子
       this.particles.spawn(
         newHead.x * this.CELL_SIZE + this.CELL_SIZE / 2,
         newHead.y * this.CELL_SIZE + this.CELL_SIZE / 2,
-        '#00ffcc',
+        '#22c55e',
         14,
         3.5
       );
-      this.addFloatingText(newHead.x, newHead.y, '+10', '#00ffcc');
+      this.addFloatingText(newHead.x, newHead.y, '+10', '#38bdf8');
 
-      // 刷新普通食物
       this.spawnFood();
-
-      // 尝试刷新金色特殊食物
       this.trySpawnBonusFood();
 
-      // 动态提速 (普通模式每 50 分提速)
       const config = this.DIFFICULTY_CONFIG[this.difficulty];
       if (config.dynamicSpeed) {
         const speedDeduction = Math.floor(this.score / 50) * 12;
@@ -705,43 +665,40 @@ class SnakeGame {
       }
     }
 
-    // 5. 判定是否吃到金色特殊果 (+30分)
+    // 吃金色限时果
     if (this.bonusFood && newHead.x === this.bonusFood.x && newHead.y === this.bonusFood.y) {
       ateFood = true;
       this.score += 30;
       this.elCurrentScore.textContent = this.score;
+
+      this.elCurrentScore.classList.add('score-bump');
+      setTimeout(() => this.elCurrentScore.classList.remove('score-bump'), 150);
+
       this.sound.playBonusEat();
 
-      // 金色爆炸粒子
       this.particles.spawn(
         newHead.x * this.CELL_SIZE + this.CELL_SIZE / 2,
         newHead.y * this.CELL_SIZE + this.CELL_SIZE / 2,
-        '#ffd700',
-        24,
+        '#fbbf24',
+        22,
         4.5
       );
-      this.addFloatingText(newHead.x, newHead.y, '+30 🌟', '#ffd700');
+      this.addFloatingText(newHead.x, newHead.y, '+30 ★', '#fbbf24');
 
       this.bonusFood = null;
       this.hideBonusBar();
     }
 
-    // 若没吃到任何食物，则移除蛇尾保持长度；吃到了则不 pop，从而蛇身增长 1 节
     if (!ateFood) {
       this.snake.pop();
     }
   }
 
-  // ========================
-  // 渲染层与动画主循环
-  // ========================
   gameLoop(currentTime) {
     const deltaTime = (currentTime - (this.lastFrameTime || currentTime)) / 1000;
     this.lastFrameTime = currentTime;
 
-    // 运行态时的时钟与逻辑步进
     if (this.state === 'RUNNING') {
-      // 特殊食物 5 秒倒计时更新
       if (this.bonusFood) {
         this.bonusFood.timeLeft -= deltaTime;
         if (this.bonusFood.timeLeft <= 0) {
@@ -752,14 +709,12 @@ class SnakeGame {
         }
       }
 
-      // 定频匀速物理移动
       if (currentTime - this.lastStepTime >= this.speed) {
         this.step();
         this.lastStepTime = currentTime;
       }
     }
 
-    // 动画组件更新 (粒子、飘字)
     this.particles.update();
     for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
       const ft = this.floatingTexts[i];
@@ -770,9 +725,7 @@ class SnakeGame {
       }
     }
 
-    // 绘制画面
     this.render();
-
     requestAnimationFrame((ts) => this.gameLoop(ts));
   }
 
@@ -782,13 +735,13 @@ class SnakeGame {
     const h = this.canvas.height;
     const cs = this.CELL_SIZE;
 
-    // 清屏与深邃背景底色
+    // 清屏与深邃棋盘底色
     ctx.clearRect(0, 0, w, h);
-    ctx.fillStyle = '#060a12';
+    ctx.fillStyle = '#070a10';
     ctx.fillRect(0, 0, w, h);
 
-    // 绘制微弱科技网格线
-    ctx.strokeStyle = 'rgba(0, 255, 204, 0.035)';
+    // 绘制极弱点阵网格线 (rgba(255,255,255,0.03))
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
     ctx.lineWidth = 1;
     for (let i = 0; i <= this.GRID_SIZE; i++) {
       ctx.beginPath();
@@ -802,17 +755,17 @@ class SnakeGame {
       ctx.stroke();
     }
 
-    // 绘制障碍物 (Hard 模式)
+    // 绘制障碍物
     for (const obs of this.obstacles) {
       this.drawObstacle(obs.x * cs, obs.y * cs, cs);
     }
 
-    // 绘制普通食物 (发光脉冲红苹果)
+    // 绘制普通食物 (暖红带呼吸发光)
     if (this.food) {
       this.drawFood(this.food.x * cs, this.food.y * cs, cs);
     }
 
-    // 绘制特殊金色食物 (旋转与光晕特效)
+    // 绘制限时金色果 (香槟金旋转与光晕环)
     if (this.bonusFood) {
       this.drawBonusFood(this.bonusFood.x * cs, this.bonusFood.y * cs, cs);
     }
@@ -820,32 +773,30 @@ class SnakeGame {
     // 绘制蛇身与蛇头
     this.drawSnake();
 
-    // 绘制爆发粒子
+    // 粒子
     this.particles.draw(ctx);
 
-    // 绘制上浮分数字样
+    // 飘字
     this.drawFloatingTexts();
   }
 
   drawObstacle(x, y, s) {
     const ctx = this.ctx;
     ctx.save();
-    ctx.fillStyle = '#2d3748';
-    ctx.strokeStyle = '#4a5568';
-    ctx.lineWidth = 2;
-    const radius = 6;
+    ctx.fillStyle = '#64748b';
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.roundRect(x + 2, y + 2, s - 4, s - 4, radius);
+    ctx.roundRect(x + 2, y + 2, s - 4, s - 4, 4);
     ctx.fill();
     ctx.stroke();
 
-    // 工业交叉警示斜纹
-    ctx.strokeStyle = 'rgba(255, 51, 102, 0.3)';
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
     ctx.beginPath();
-    ctx.moveTo(x + 4, y + 4);
-    ctx.lineTo(x + s - 4, y + s - 4);
-    ctx.moveTo(x + s - 4, y + 4);
-    ctx.lineTo(x + 4, y + s - 4);
+    ctx.moveTo(x + 3, y + 3);
+    ctx.lineTo(x + s - 3, y + s - 3);
+    ctx.moveTo(x + s - 3, y + 3);
+    ctx.lineTo(x + 3, y + s - 3);
     ctx.stroke();
     ctx.restore();
   }
@@ -853,25 +804,26 @@ class SnakeGame {
   drawFood(x, y, s) {
     const ctx = this.ctx;
     const time = performance.now() * 0.005;
-    const pulse = Math.sin(time) * 1.5;
+    const pulse = Math.sin(time) * 1.2;
 
     ctx.save();
-    ctx.shadowColor = '#ff007f';
-    ctx.shadowBlur = 12 + pulse * 2;
-    ctx.fillStyle = '#ff007f';
+    // --food-apple: #ef4444, --food-apple-glow: rgba(239, 68, 68, 0.6)
+    ctx.shadowColor = 'rgba(239, 68, 68, 0.6)';
+    ctx.shadowBlur = 10 + pulse * 2;
+    ctx.fillStyle = '#ef4444';
 
     const cx = x + s / 2;
     const cy = y + s / 2;
-    const r = (s / 2 - 4) + pulse;
+    const r = (s / 2 - 3) + pulse;
 
     ctx.beginPath();
     ctx.arc(cx, cy, Math.max(3, r), 0, Math.PI * 2);
     ctx.fill();
 
-    // 食物中心高光
+    // 食物高光
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.arc(cx - r * 0.3, cy - r * 0.3, r * 0.3, 0, Math.PI * 2);
+    ctx.arc(cx - r * 0.3, cy - r * 0.3, r * 0.28, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }
@@ -886,13 +838,12 @@ class SnakeGame {
     ctx.translate(cx, cy);
     ctx.rotate(time);
 
-    // 金光四射外发光
-    ctx.shadowColor = '#ffd700';
-    ctx.shadowBlur = 18;
-    ctx.fillStyle = '#ffd700';
+    // --food-golden: #fbbf24, --food-golden-glow: rgba(251, 191, 36, 0.8)
+    ctx.shadowColor = 'rgba(251, 191, 36, 0.8)';
+    ctx.shadowBlur = 15;
+    ctx.fillStyle = '#fbbf24';
 
-    // 八角星或菱形
-    const r = s / 2 - 3;
+    const r = s / 2 - 2;
     ctx.beginPath();
     for (let i = 0; i < 4; i++) {
       ctx.lineTo(Math.cos((i * Math.PI) / 2) * r, Math.sin((i * Math.PI) / 2) * r);
@@ -904,10 +855,9 @@ class SnakeGame {
     ctx.closePath();
     ctx.fill();
 
-    // 核心光核
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.arc(0, 0, r * 0.3, 0, Math.PI * 2);
+    ctx.arc(0, 0, r * 0.28, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }
@@ -924,45 +874,44 @@ class SnakeGame {
 
       ctx.save();
       if (isHead) {
-        // 蛇头：青蓝发光科技感圆角方块
-        ctx.shadowColor = '#00ffcc';
-        ctx.shadowBlur = 14;
-        ctx.fillStyle = '#00ffcc';
+        // 蛇头: --snake-head: #22c55e, --snake-head-glow: rgba(34, 197, 94, 0.5)
+        ctx.shadowColor = 'rgba(34, 197, 94, 0.5)';
+        ctx.shadowBlur = 8;
+        ctx.fillStyle = '#22c55e';
         ctx.beginPath();
-        ctx.roundRect(x + 1.5, y + 1.5, cs - 3, cs - 3, 7);
+        ctx.roundRect(x + 1, y + 1, cs - 2, cs - 2, 5);
         ctx.fill();
 
-        // 蛇眼睛
-        ctx.fillStyle = '#05131e';
-        let eye1X = x + 7, eye1Y = y + 7, eye2X = x + cs - 11, eye2Y = y + 7;
-        if (this.dir.x === 1) { // 向右
-          eye1X = x + cs - 9; eye1Y = y + 7;
-          eye2X = x + cs - 9; eye2Y = y + cs - 11;
-        } else if (this.dir.x === -1) { // 向左
-          eye1X = x + 5; eye1Y = y + 7;
-          eye2X = x + 5; eye2Y = y + cs - 11;
-        } else if (this.dir.y === 1) { // 向下
-          eye1X = x + 7; eye1Y = y + cs - 9;
-          eye2X = x + cs - 11; eye2Y = y + cs - 9;
-        } else if (this.dir.y === -1) { // 向上
-          eye1X = x + 7; eye1Y = y + 5;
-          eye2X = x + cs - 11; eye2Y = y + 5;
+        // 眼睛小白点
+        ctx.fillStyle = '#ffffff';
+        let eye1X = x + 4, eye1Y = y + 4, eye2X = x + cs - 7, eye2Y = y + 4;
+        if (this.dir.x === 1) { // 右
+          eye1X = x + cs - 6; eye1Y = y + 4;
+          eye2X = x + cs - 6; eye2Y = y + cs - 7;
+        } else if (this.dir.x === -1) { // 左
+          eye1X = x + 3; eye1Y = y + 4;
+          eye2X = x + 3; eye2Y = y + cs - 7;
+        } else if (this.dir.y === 1) { // 下
+          eye1X = x + 4; eye1Y = y + cs - 6;
+          eye2X = x + cs - 7; eye2Y = y + cs - 6;
+        } else if (this.dir.y === -1) { // 上
+          eye1X = x + 4; eye1Y = y + 3;
+          eye2X = x + cs - 7; eye2Y = y + 3;
         }
 
         ctx.beginPath();
-        ctx.arc(eye1X + 2, eye1Y + 2, 2.5, 0, Math.PI * 2);
-        ctx.arc(eye2X + 2, eye2Y + 2, 2.5, 0, Math.PI * 2);
+        ctx.arc(eye1X + 1.5, eye1Y + 1.5, 1.8, 0, Math.PI * 2);
+        ctx.arc(eye2X + 1.5, eye2Y + 1.5, 1.8, 0, Math.PI * 2);
         ctx.fill();
 
       } else {
-        // 蛇身渐变色：从青绿到深海蓝，越靠近尾巴透明度稍降
-        const ratio = 1 - (i / this.snake.length) * 0.45;
-        ctx.fillStyle = `rgba(0, 220, 180, ${ratio})`;
-        ctx.shadowColor = 'rgba(0, 255, 204, 0.2)';
-        ctx.shadowBlur = 4;
+        // 蛇身: --snake-body: #4ade80, 缩进 1px 圆角节段
+        ctx.fillStyle = '#4ade80';
+        ctx.shadowColor = 'rgba(74, 222, 128, 0.2)';
+        ctx.shadowBlur = 3;
 
         ctx.beginPath();
-        ctx.roundRect(x + 2, y + 2, cs - 4, cs - 4, 5);
+        ctx.roundRect(x + 1.5, y + 1.5, cs - 3, cs - 3, 4);
         ctx.fill();
       }
       ctx.restore();
@@ -972,21 +921,18 @@ class SnakeGame {
   drawFloatingTexts() {
     const ctx = this.ctx;
     ctx.save();
-    ctx.font = 'bold 15px Orbitron, sans-serif';
+    ctx.font = 'bold 12px "Chakra Petch", monospace';
     ctx.textAlign = 'center';
     for (const ft of this.floatingTexts) {
       ctx.globalAlpha = Math.max(0, ft.life);
       ctx.fillStyle = ft.color;
       ctx.shadowColor = ft.color;
-      ctx.shadowBlur = 8;
+      ctx.shadowBlur = 6;
       ctx.fillText(ft.text, ft.x, ft.y);
     }
     ctx.restore();
   }
 
-  // ========================
-  // UI 辅助与模态框
-  // ========================
   showBonusBar() {
     this.elBonusContainer.classList.remove('hidden');
     this.updateBonusBar(5.0, 5.0);
@@ -1054,16 +1000,15 @@ class SnakeGame {
       const rankBadge = index === 0 ? '🥇 1' : index === 1 ? '🥈 2' : index === 2 ? '🥉 3' : `${index + 1}`;
       tr.innerHTML = `
         <td>${rankBadge}</td>
-        <td style="font-family: Orbitron; font-weight: bold; color: #00ffcc;">${item.score}</td>
+        <td style="font-family: 'Chakra Petch', monospace; font-weight: bold; color: #38bdf8;">${item.score}</td>
         <td>${item.difficulty}</td>
-        <td style="color: #94a3b8; font-size: 0.75rem;">${item.date}</td>
+        <td style="color: #94a3b8; font-size: 0.72rem;">${item.date}</td>
       `;
       this.elLeaderboardBody.appendChild(tr);
     });
   }
 }
 
-// 页面加载完成后实例化游戏
 window.addEventListener('DOMContentLoaded', () => {
   window.snakeGame = new SnakeGame();
 });

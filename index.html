@@ -7,15 +7,14 @@
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <div class="game-container">
-    <!-- 顶部状态栏 -->
+    <!-- 顶部数据看板 (Header & Scoreboard) -->
     <header class="game-header">
       <div class="logo-area">
-        <h1 class="game-title">SNAKE <span class="neon-text">2077</span></h1>
-        <span class="subtitle">RETRO CYBERPUNK</span>
+        <h1 class="game-title">🐍 SNAKE <span class="neon-text">CLASSIC</span></h1>
       </div>
 
       <div class="stats-board">
@@ -24,8 +23,8 @@
           <span class="stat-value" id="currentScore">0</span>
         </div>
         <div class="stat-box">
-          <span class="stat-label">BEST</span>
-          <span class="stat-value" id="bestScore">0</span>
+          <span class="stat-label">👑 BEST</span>
+          <span class="stat-value best-val" id="bestScore">0</span>
         </div>
       </div>
 
@@ -38,10 +37,10 @@
             <option value="hard">困难 (Hard)</option>
           </select>
         </div>
-        <button id="soundToggleBtn" class="icon-btn" title="切换音效 (M)" aria-label="切换音效">
+        <button id="soundToggleBtn" class="icon-btn btn-arcade" title="切换音效 (M)" aria-label="切换音效">
           <span id="soundIcon">🔊</span>
         </button>
-        <button id="leaderboardBtn" class="icon-btn" title="查看排行榜" aria-label="查看排行榜">
+        <button id="leaderboardBtn" class="icon-btn btn-arcade" title="查看排行榜" aria-label="查看排行榜">
           🏆
         </button>
       </div>
@@ -49,7 +48,7 @@
 
     <!-- 特殊食物倒计时条（激活时显示） -->
     <div id="bonusBarContainer" class="bonus-bar-container hidden">
-      <div class="bonus-label">⚡ 特殊金果倒计时: <span id="bonusTimerText">5.0</span>s (+30分)</div>
+      <div class="bonus-label">★ 限时金果倒计时: <span id="bonusTimerText">5.0</span>s (+30分)</div>
       <div class="bonus-progress-track">
         <div id="bonusProgressBar" class="bonus-progress-fill"></div>
       </div>
@@ -57,69 +56,73 @@
 
     <!-- 游戏画布与覆盖层主视窗 -->
     <main class="canvas-wrapper">
-      <canvas id="gameCanvas" width="600" height="600"></canvas>
+      <canvas id="gameCanvas" width="400" height="400"></canvas>
 
       <!-- 状态浮层：开始、暂停、游戏结束 -->
       <div id="overlay" class="overlay active">
         <div class="overlay-card">
+          <!-- 初始就绪态 -->
           <div id="startScreen" class="screen-view">
-            <h2 class="overlay-title">CYBER SNAKE</h2>
-            <p class="overlay-desc">经典重塑 · 霓虹光效 · 触手可及</p>
+            <h2 class="overlay-title">🐍 SNAKE CLASSIC</h2>
+            <p class="overlay-desc">经典重塑 · 极简霓虹 · 触手可及</p>
             <div class="instruction-box">
-              <p>🎮 <strong>键盘方向键 / WASD</strong> 转向</p>
+              <p>🎮 <strong>键盘方向键 / WASD</strong> 控制移动</p>
               <p>⏸️ <strong>空格键 Space</strong> 暂停 / 继续</p>
-              <p>📱 <strong>触屏滑动</strong> 或下方 <strong>虚拟按键</strong> 操作</p>
+              <p>📱 <strong>屏幕手势滑动</strong> 或下方 <strong>虚拟十字键</strong></p>
             </div>
-            <button id="startBtn" class="glow-btn">开始游戏 START</button>
+            <button id="startBtn" class="btn-arcade glow-btn">开始游戏 🎮</button>
           </div>
 
+          <!-- 暂停态 -->
           <div id="pauseScreen" class="screen-view hidden">
-            <h2 class="overlay-title">PAUSED</h2>
-            <p class="overlay-desc">游戏已暂停</p>
+            <h2 class="overlay-title">⏸️ 游戏已暂停</h2>
+            <p class="overlay-desc">按空格键或点击屏幕继续游戏</p>
             <div class="overlay-actions">
-              <button id="resumeBtn" class="glow-btn">继续游戏 RESUME</button>
-              <button id="restartFromPauseBtn" class="secondary-btn">重新开始 RESTART</button>
+              <button id="resumeBtn" class="btn-arcade glow-btn">继续游戏 RESUME</button>
+              <button id="restartFromPauseBtn" class="btn-arcade secondary-btn">重新开始 RESTART</button>
             </div>
           </div>
 
+          <!-- 结束结算态 -->
           <div id="gameOverScreen" class="screen-view hidden">
             <h2 class="overlay-title text-danger">GAME OVER</h2>
             <div class="final-score-box">
               <div class="final-stat">
-                <span>最终得分</span>
+                <span>本局得分</span>
                 <span id="finalScore" class="score-highlight">0</span>
               </div>
               <div class="final-stat">
-                <span>难度</span>
+                <span>当前难度</span>
                 <span id="finalDifficulty">-</span>
               </div>
-              <div id="newRecordBadge" class="new-record hidden">🎉 创造了新纪录！</div>
+              <div id="newRecordBadge" class="new-record hidden">🎉 NEW HIGH SCORE!</div>
             </div>
             <div class="overlay-actions">
-              <button id="restartBtn" class="glow-btn">再来一局 PLAY AGAIN</button>
+              <button id="restartBtn" class="btn-arcade glow-btn">再来一局 🔄</button>
+              <button id="gameOverLeaderboardBtn" class="btn-arcade ghost-btn">查看排行榜 🏆</button>
             </div>
           </div>
         </div>
       </div>
     </main>
 
-    <!-- 移动端虚拟按键与快捷控制 -->
+    <!-- 底部控制区 (Footer / Mobile Controls) -->
     <footer class="game-footer">
       <div class="mobile-dpad" id="mobileDpad">
         <div class="dpad-row">
-          <button class="dpad-btn up" id="dpadUp" aria-label="上">▲</button>
+          <button class="dpad-btn btn-arcade up" id="dpadUp" aria-label="上">▲</button>
         </div>
         <div class="dpad-row middle">
-          <button class="dpad-btn left" id="dpadLeft" aria-label="左">◀</button>
-          <button class="dpad-btn center-action" id="dpadPause" aria-label="暂停">⏸</button>
-          <button class="dpad-btn right" id="dpadRight" aria-label="右">▶</button>
+          <button class="dpad-btn btn-arcade left" id="dpadLeft" aria-label="左">◀</button>
+          <button class="dpad-btn btn-arcade center-action" id="dpadPause" aria-label="暂停">暂停</button>
+          <button class="dpad-btn btn-arcade right" id="dpadRight" aria-label="右">▶</button>
         </div>
         <div class="dpad-row">
-          <button class="dpad-btn down" id="dpadDown" aria-label="下">▼</button>
+          <button class="dpad-btn btn-arcade down" id="dpadDown" aria-label="下">▼</button>
         </div>
       </div>
       <div class="footer-tips">
-        <span>快捷提示: [空格] 暂停/继续 | [M] 音效切换 | 滑动手势灵敏支持</span>
+        <span>[ Space 暂停/继续 ] &nbsp;|&nbsp; [ WASD / 方向键 控制移动 ] &nbsp;|&nbsp; [ M 切换音效 ]</span>
       </div>
     </footer>
 
@@ -145,7 +148,7 @@
               <!-- 动态插入 -->
             </tbody>
           </table>
-          <div id="emptyLeaderboard" class="empty-tip hidden">暂无战绩，快去刷新记录吧！</div>
+          <div id="emptyLeaderboard" class="empty-tip hidden">暂无战绩，快去刷新纪录吧！</div>
         </div>
         <div class="modal-footer">
           <button id="clearLeaderboardBtn" class="danger-link-btn">清空排行数据</button>

@@ -1,19 +1,40 @@
+/* ========================================================
+   贪吃蛇游戏（Snake Classic）UI 设计规范落地样式表
+   严格遵循 /Users/zwl/orca/projects/demo-1123/UI-DESIGN.md
+   ======================================================== */
+
 :root {
-  --bg-color: #0b0f19;
-  --surface-color: rgba(18, 25, 44, 0.85);
-  --surface-border: #233554;
-  --primary-neon: #00ffcc;
-  --primary-glow: rgba(0, 255, 204, 0.45);
-  --secondary-neon: #ff007f;
-  --secondary-glow: rgba(255, 0, 127, 0.4);
-  --gold-neon: #ffd700;
-  --gold-glow: rgba(255, 215, 0, 0.6);
-  --text-main: #e2e8f0;
-  --text-dim: #94a3b8;
-  --danger-color: #ff3366;
-  --font-display: 'Orbitron', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-body: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --grid-line: rgba(0, 255, 204, 0.04);
+  /* 背景与结构色 */
+  --bg-primary: #0b0f19;          /* 页面深黑底色（暗夜空间） */
+  --bg-surface: #151d2f;          /* 卡片与操作面板表面色 */
+  --bg-board: #070a10;            /* 游戏 Canvas 棋盘深邃底色 */
+  --border-subtle: rgba(255, 255, 255, 0.08); /* 极细边框分隔线 */
+  --border-highlight: rgba(99, 102, 241, 0.3);
+
+  /* 游戏实体主色与发光 */
+  --snake-head: #22c55e;          /* 蛇头荧光绿（主导聚焦） */
+  --snake-head-glow: rgba(34, 197, 94, 0.5);
+  --snake-body: #4ade80;          /* 蛇身微浅荧光绿 */
+  --food-apple: #ef4444;          /* 普通食物红苹果（暖红） */
+  --food-apple-glow: rgba(239, 68, 68, 0.6);
+  --food-golden: #fbbf24;         /* 金色限时果（香槟金） */
+  --food-golden-glow: rgba(251, 191, 36, 0.8);
+  --obstacle-color: #64748b;      /* 静态障碍物冷岩灰 */
+
+  /* 文字色阶 */
+  --text-primary: #f8fafc;        /* 主标题与关键分数高亮 */
+  --text-secondary: #94a3b8;      /* 辅助提示与副标签 */
+  --text-muted: #475569;          /* 次要键盘提示/版权信息 */
+
+  /* 状态与强调色 */
+  --accent-primary: #6366f1;      /* 核心主按钮（电光靛蓝） */
+  --accent-hover: #4f46e5;
+  --accent-score: #38bdf8;        /* 得分高亮荧光天蓝 */
+  --danger: #f43f5e;              /* 死亡/碰撞警示红 */
+
+  /* 字体排版系统 */
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-numeric: "Chakra Petch", "Courier New", monospace;
 }
 
 * {
@@ -25,12 +46,12 @@
 }
 
 body {
-  background-color: var(--bg-color);
+  background-color: var(--bg-primary);
   background-image: 
-    radial-gradient(circle at 50% 10%, rgba(0, 255, 204, 0.08) 0%, transparent 60%),
-    radial-gradient(circle at 80% 80%, rgba(255, 0, 127, 0.06) 0%, transparent 50%),
-    linear-gradient(rgba(11, 15, 25, 0.95), rgba(11, 15, 25, 0.95));
-  color: var(--text-main);
+    radial-gradient(circle at 50% 12%, rgba(99, 102, 241, 0.12) 0%, transparent 55%),
+    radial-gradient(circle at 80% 85%, rgba(34, 197, 94, 0.08) 0%, transparent 45%),
+    linear-gradient(var(--bg-primary), var(--bg-primary));
+  color: var(--text-primary);
   font-family: var(--font-body);
   min-height: 100vh;
   display: flex;
@@ -42,7 +63,7 @@ body {
 
 .game-container {
   width: 100%;
-  max-width: 660px;
+  max-width: 480px;
   padding: 16px 12px;
   display: flex;
   flex-direction: column;
@@ -50,18 +71,18 @@ body {
   gap: 12px;
 }
 
-/* 顶部状态栏 */
+/* 4.1 顶部数据看板（Header & Scoreboard） */
 .game-header {
   width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--surface-color);
-  border: 1px solid var(--surface-border);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
   backdrop-filter: blur(12px);
-  padding: 10px 16px;
+  padding: 10px 14px;
   border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
 }
 
 .logo-area {
@@ -70,68 +91,70 @@ body {
 }
 
 .game-title {
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  font-weight: 900;
-  letter-spacing: 2px;
-  color: #ffffff;
+  font-family: var(--font-numeric);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--text-primary);
 }
 
 .neon-text {
-  color: var(--primary-neon);
-  text-shadow: 0 0 10px var(--primary-glow);
-}
-
-.subtitle {
-  font-family: var(--font-display);
-  font-size: 0.6rem;
-  letter-spacing: 1.5px;
-  color: var(--secondary-neon);
-  opacity: 0.9;
+  color: var(--snake-head);
+  text-shadow: 0 0 8px var(--snake-head-glow);
 }
 
 .stats-board {
   display: flex;
-  gap: 16px;
+  gap: 10px;
 }
 
 .stat-box {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: rgba(0, 0, 0, 0.35);
-  padding: 4px 12px;
-  border-radius: 6px;
-  border: 1px solid rgba(0, 255, 204, 0.2);
-  min-width: 68px;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  min-width: 64px;
 }
 
 .stat-label {
-  font-family: var(--font-display);
   font-size: 0.65rem;
-  color: var(--text-dim);
-  letter-spacing: 1px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  letter-spacing: 0.5px;
 }
 
 .stat-value {
-  font-family: var(--font-display);
-  font-size: 1.2rem;
+  font-family: var(--font-numeric);
+  font-size: 1.35rem;
   font-weight: 700;
-  color: var(--primary-neon);
-  text-shadow: 0 0 8px var(--primary-glow);
+  color: var(--accent-score);
+  text-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+  transition: transform 0.15s ease-out;
+}
+
+.stat-value.score-bump {
+  transform: scale(1.18);
+}
+
+.stat-value.best-val {
+  color: var(--food-golden);
+  text-shadow: 0 0 8px var(--food-golden-glow);
 }
 
 .controls-toolbar {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .select-wrapper select {
   background: rgba(0, 0, 0, 0.5);
-  border: 1px solid var(--surface-border);
-  color: var(--text-main);
-  padding: 6px 10px;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  padding: 5px 8px;
   border-radius: 8px;
   font-family: var(--font-body);
   font-size: 0.8rem;
@@ -142,64 +165,71 @@ body {
 
 .select-wrapper select:focus,
 .select-wrapper select:hover {
-  border-color: var(--primary-neon);
-  box-shadow: 0 0 8px var(--primary-glow);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 8px rgba(99, 102, 241, 0.35);
 }
 
 .icon-btn {
   background: rgba(0, 0, 0, 0.5);
-  border: 1px solid var(--surface-border);
-  color: var(--text-main);
-  font-size: 1.1rem;
-  width: 36px;
-  height: 36px;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-size: 1.05rem;
+  width: 34px;
+  height: 34px;
   border-radius: 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .icon-btn:hover {
-  border-color: var(--primary-neon);
-  box-shadow: 0 0 10px var(--primary-glow);
-  transform: translateY(-1px);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.35);
 }
 
-.icon-btn:active {
+/* 6. 前端样式与动效落地（按钮规范） */
+.btn-arcade {
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.btn-arcade:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(99, 102, 241, 0.35);
+}
+
+.btn-arcade:active {
   transform: translateY(1px);
 }
 
-/* 特殊食物倒计时条 */
+/* 限时金色食物倒计时条 */
 .bonus-bar-container {
   width: 100%;
-  background: rgba(255, 215, 0, 0.1);
-  border: 1px solid rgba(255, 215, 0, 0.4);
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.35);
   border-radius: 8px;
-  padding: 6px 12px;
+  padding: 5px 12px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  animation: pulseGold 1.5s infinite alternate;
+  gap: 3px;
+  animation: pulseGolden 1.5s infinite alternate;
 }
 
-@keyframes pulseGold {
-  from { box-shadow: 0 0 4px rgba(255, 215, 0, 0.2); }
-  to { box-shadow: 0 0 12px rgba(255, 215, 0, 0.5); }
+@keyframes pulseGolden {
+  from { box-shadow: 0 0 4px rgba(251, 191, 36, 0.2); }
+  to { box-shadow: 0 0 12px rgba(251, 191, 36, 0.5); }
 }
 
 .bonus-label {
-  font-size: 0.8rem;
-  color: var(--gold-neon);
+  font-size: 0.75rem;
+  color: var(--food-golden);
   font-weight: 600;
-  font-family: var(--font-display);
-  letter-spacing: 0.5px;
+  font-family: var(--font-numeric);
 }
 
 .bonus-progress-track {
   width: 100%;
-  height: 6px;
+  height: 5px;
   background: rgba(0, 0, 0, 0.4);
   border-radius: 3px;
   overflow: hidden;
@@ -208,41 +238,41 @@ body {
 .bonus-progress-fill {
   height: 100%;
   width: 100%;
-  background: linear-gradient(90deg, #ff9900, var(--gold-neon));
-  box-shadow: 0 0 8px var(--gold-glow);
+  background: linear-gradient(90deg, #f59e0b, var(--food-golden));
+  box-shadow: 0 0 6px var(--food-golden-glow);
   transition: width 0.1s linear;
 }
 
-/* 画布主视窗 */
+/* 4.2 游戏画布区（Game Canvas）: 400px x 400px 基准 */
 .canvas-wrapper {
   position: relative;
-  width: 100%;
+  width: 400px;
+  height: 400px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vw - 32px);
   aspect-ratio: 1 / 1;
-  max-width: 600px;
-  max-height: 600px;
-  background: #060911;
-  border: 2px solid #1a2842;
-  border-radius: 14px;
+  background: var(--bg-board);
+  border: 2px solid #1e293b;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), inset 0 0 25px rgba(0, 255, 204, 0.05);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), inset 0 0 20px rgba(34, 197, 94, 0.04);
 }
 
 canvas#gameCanvas {
   width: 100%;
   height: 100%;
   display: block;
-  background: transparent;
 }
 
-/* 覆盖层 */
+/* 5. 游戏状态覆盖层（State Overlays） */
 .overlay {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(7, 10, 18, 0.85);
-  backdrop-filter: blur(6px);
+  background: rgba(11, 15, 25, 0.85);
+  backdrop-filter: blur(8px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -259,148 +289,147 @@ canvas#gameCanvas {
 
 .overlay-card {
   text-align: center;
-  padding: 24px;
-  max-width: 88%;
-  background: rgba(18, 25, 44, 0.95);
-  border: 1px solid rgba(0, 255, 204, 0.3);
-  border-radius: 16px;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.7), 0 0 20px rgba(0, 255, 204, 0.15);
-  animation: modalPop 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  padding: 22px 20px;
+  max-width: 90%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-highlight);
+  border-radius: 14px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.75), 0 0 20px rgba(99, 102, 241, 0.15);
+  animation: modalPop 0.25s cubic-bezier(0.18, 0.89, 0.32, 1.28);
 }
 
 @keyframes modalPop {
-  0% { transform: scale(0.9); opacity: 0; }
+  0% { transform: scale(0.92); opacity: 0; }
   100% { transform: scale(1); opacity: 1; }
 }
 
 .overlay-title {
-  font-family: var(--font-display);
-  font-size: 1.8rem;
-  letter-spacing: 2px;
-  margin-bottom: 8px;
-  color: var(--primary-neon);
-  text-shadow: 0 0 15px var(--primary-glow);
+  font-family: var(--font-numeric);
+  font-size: 1.55rem;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+  color: var(--text-primary);
 }
 
 .text-danger {
-  color: var(--danger-color) !important;
-  text-shadow: 0 0 15px rgba(255, 51, 102, 0.6) !important;
+  color: var(--danger) !important;
+  text-shadow: 0 0 12px rgba(244, 63, 94, 0.6) !important;
 }
 
 .overlay-desc {
-  font-size: 0.9rem;
-  color: var(--text-dim);
-  margin-bottom: 20px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
 }
 
 .instruction-box {
-  background: rgba(0, 0, 0, 0.35);
-  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 10px 14px;
   border-radius: 8px;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   text-align: left;
-  line-height: 1.8;
-  margin-bottom: 24px;
-  color: #cbd5e1;
-  border-left: 3px solid var(--primary-neon);
-}
-
-.instruction-box p {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  line-height: 1.7;
+  margin-bottom: 18px;
+  color: var(--text-secondary);
+  border-left: 3px solid var(--snake-head);
 }
 
 .glow-btn {
-  background: linear-gradient(135deg, #00ffcc, #00b4d8);
-  color: #03121f;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1rem;
-  padding: 12px 28px;
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-score) 100%);
+  color: #ffffff;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 11px 26px;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  box-shadow: 0 0 15px var(--primary-glow);
-  transition: all 0.2s ease;
-  letter-spacing: 1px;
+  box-shadow: 0 0 14px rgba(99, 102, 241, 0.4);
 }
 
 .glow-btn:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 0 25px rgba(0, 255, 204, 0.7);
-}
-
-.glow-btn:active {
-  transform: translateY(1px) scale(0.98);
+  box-shadow: 0 0 22px rgba(99, 102, 241, 0.7);
 }
 
 .secondary-btn {
   background: rgba(255, 255, 255, 0.08);
-  color: var(--text-main);
-  border: 1px solid var(--surface-border);
-  padding: 10px 20px;
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  padding: 9px 18px;
   border-radius: 8px;
   font-family: var(--font-body);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   cursor: pointer;
-  transition: all 0.2s ease;
 }
 
 .secondary-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: var(--text-dim);
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.ghost-btn {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.ghost-btn:hover {
+  border-color: var(--text-secondary);
+  color: var(--text-primary);
 }
 
 .overlay-actions {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .final-score-box {
   background: rgba(0, 0, 0, 0.4);
-  padding: 16px;
-  border-radius: 10px;
-  margin-bottom: 20px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  margin-bottom: 16px;
 }
 
 .final-stat {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 0;
-  font-size: 0.95rem;
-  color: var(--text-dim);
+  padding: 4px 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
 }
 
 .score-highlight {
-  font-family: var(--font-display);
-  font-size: 1.6rem;
+  font-family: var(--font-numeric);
+  font-size: 1.45rem;
   font-weight: 700;
-  color: var(--primary-neon);
-  text-shadow: 0 0 10px var(--primary-glow);
+  color: var(--accent-score);
 }
 
 .new-record {
-  margin-top: 10px;
-  padding: 6px;
-  background: rgba(255, 215, 0, 0.15);
-  border: 1px dashed var(--gold-neon);
+  margin-top: 8px;
+  padding: 5px;
+  background: rgba(251, 191, 36, 0.15);
+  border: 1px dashed var(--food-golden);
   border-radius: 6px;
-  color: var(--gold-neon);
+  color: var(--food-golden);
   font-weight: 700;
-  font-size: 0.9rem;
-  animation: pulseGold 1s infinite alternate;
+  font-size: 0.85rem;
+  animation: pulseGolden 1s infinite alternate;
 }
 
-/* 底部虚拟按键与提示 */
+/* 4.3 底部移动端虚拟十字键 (Virtual D-Pad) */
 .game-footer {
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .mobile-dpad {
@@ -408,7 +437,7 @@ canvas#gameCanvas {
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .dpad-row {
@@ -417,40 +446,39 @@ canvas#gameCanvas {
 }
 
 .dpad-btn {
-  width: 58px;
-  height: 52px;
-  background: var(--surface-color);
-  border: 1px solid var(--surface-border);
-  color: var(--text-main);
-  font-size: 1.2rem;
-  border-radius: 12px;
+  width: 56px;
+  height: 54px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-size: 1.15rem;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  transition: all 0.15s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
   user-select: none;
   -webkit-user-select: none;
 }
 
 .dpad-btn:active {
-  background: rgba(0, 255, 204, 0.2);
-  border-color: var(--primary-neon);
+  background: rgba(99, 102, 241, 0.25);
+  border-color: var(--accent-primary);
   transform: scale(0.92);
-  box-shadow: 0 0 12px var(--primary-glow);
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.5);
 }
 
 .dpad-btn.center-action {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
   background: rgba(255, 255, 255, 0.05);
-  font-size: 1rem;
 }
 
 .footer-tips {
-  font-size: 0.75rem;
-  color: var(--text-dim);
+  font-size: 0.72rem;
+  color: var(--text-muted);
   text-align: center;
-  opacity: 0.8;
 }
 
 /* 排行榜模态框 */
@@ -478,22 +506,22 @@ canvas#gameCanvas {
   position: absolute;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(4px);
 }
 
 .modal-dialog {
   position: relative;
-  background: #101726;
-  border: 1px solid var(--primary-glow);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 255, 204, 0.2);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-highlight);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8), 0 0 25px rgba(99, 102, 241, 0.2);
   width: 90%;
-  max-width: 440px;
-  border-radius: 14px;
-  padding: 20px;
+  max-width: 400px;
+  border-radius: 12px;
+  padding: 18px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   z-index: 2;
 }
 
@@ -501,69 +529,67 @@ canvas#gameCanvas {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid var(--surface-border);
-  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 10px;
 }
 
 .modal-header h3 {
-  font-family: var(--font-display);
-  font-size: 1.1rem;
-  color: var(--primary-neon);
+  font-family: var(--font-numeric);
+  font-size: 1.05rem;
+  color: var(--text-primary);
 }
 
 .close-btn {
   background: transparent;
   border: none;
-  color: var(--text-dim);
-  font-size: 1.5rem;
+  color: var(--text-secondary);
+  font-size: 1.4rem;
   cursor: pointer;
-  line-height: 1;
 }
 
 .close-btn:hover {
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .leaderboard-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   text-align: center;
 }
 
 .leaderboard-table th {
-  padding: 8px;
-  color: var(--text-dim);
-  border-bottom: 1px solid var(--surface-border);
+  padding: 6px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-subtle);
   font-weight: 500;
 }
 
 .leaderboard-table td {
-  padding: 10px 8px;
+  padding: 8px 6px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .leaderboard-table tr:first-child td {
-  color: var(--gold-neon);
+  color: var(--food-golden);
   font-weight: 700;
 }
 
 .empty-tip {
   text-align: center;
-  color: var(--text-dim);
-  font-size: 0.85rem;
-  padding: 20px 0;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  padding: 16px 0;
 }
 
 .danger-link-btn {
   background: transparent;
   border: none;
-  color: var(--danger-color);
-  font-size: 0.8rem;
+  color: var(--danger);
+  font-size: 0.78rem;
   cursor: pointer;
   text-decoration: underline;
   opacity: 0.8;
-  transition: opacity 0.2s;
 }
 
 .danger-link-btn:hover {
@@ -586,13 +612,9 @@ canvas#gameCanvas {
   border-width: 0;
 }
 
-/* 响应式调整 */
+/* 响应式适配：桌面端隐藏虚拟按键 */
 @media (min-width: 768px) {
   .mobile-dpad {
-    display: none; /* 桌面大屏隐藏虚拟方向盘，界面更纯净 */
-  }
-  .game-container {
-    padding: 24px;
-    gap: 16px;
+    display: none;
   }
 }
