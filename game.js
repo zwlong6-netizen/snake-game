@@ -12,6 +12,7 @@ class SoundFX {
     this.ctx = null;
     this.muted = false;
     this.initContext();
+    this.setupAutoResume();
   }
 
   initContext() {
@@ -23,6 +24,20 @@ class SoundFX {
     } catch (e) {
       console.warn('Web Audio API not supported', e);
     }
+  }
+
+  setupAutoResume() {
+    const resumeHandler = () => {
+      this.resume();
+      if (this.ctx && this.ctx.state === 'running') {
+        window.removeEventListener('keydown', resumeHandler, true);
+        window.removeEventListener('touchstart', resumeHandler, true);
+        window.removeEventListener('click', resumeHandler, true);
+      }
+    };
+    window.addEventListener('keydown', resumeHandler, true);
+    window.addEventListener('touchstart', resumeHandler, true);
+    window.addEventListener('click', resumeHandler, true);
   }
 
   resume() {
@@ -56,7 +71,8 @@ class SoundFX {
     osc.stop(this.ctx.currentTime + duration);
   }
 
-  playEat() {
+  // 移动转向音效（非常轻柔的 blip/tick，低音量 ~0.04，约 30ms）
+  playMove() {
     if (this.muted || !this.ctx) return;
     this.resume();
     const now = this.ctx.currentTime;
@@ -64,32 +80,74 @@ class SoundFX {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
 
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(520, now);
-    osc.frequency.exponentialRampToValueAtTime(880, now + 0.08);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(240, now);
+    osc.frequency.exponentialRampToValueAtTime(320, now + 0.03);
 
-    gain.gain.setValueAtTime(0.2, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+    gain.gain.setValueAtTime(0.04, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.03);
 
     osc.connect(gain);
     gain.connect(this.ctx.destination);
 
     osc.start(now);
-    osc.stop(now + 0.1);
+    osc.stop(now + 0.03);
+  }
+
+  // 吃普通果音效（清脆上行音阶）
+  playEat() {
+    if (this.muted || !this.ctx) return;
+    this.resume();
+    const now = this.ctx.currentTime;
+
+    // 清脆上行双音/滑音
+    const notes = [587.33, 880]; // D5 -> A5
+    notes.forEach((freq, idx) => {
+      const noteTime = now + idx * 0.045;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, noteTime);
+
+      gain.gain.setValueAtTime(0.18, noteTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, noteTime + 0.06);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(noteTime);
+      osc.stop(noteTime + 0.06);
+    });
 
     if ('vibrate' in navigator) {
       try { navigator.vibrate(25); } catch (_) {}
     }
   }
 
+  // 吃金色神果音效（华丽短琶音）
   playBonusEat() {
     if (this.muted || !this.ctx) return;
     this.resume();
-    const notes = [659.25, 830.61, 987.77, 1318.51];
+    const now = this.ctx.currentTime;
+    // 华丽上行琶音: C6, E6, G6, C7
+    const notes = [1046.50, 1318.51, 1567.98, 2093.00];
     notes.forEach((freq, index) => {
-      setTimeout(() => {
-        this.playTone(freq, 'sine', 0.15, 0.22);
-      }, index * 40);
+      const noteTime = now + index * 0.04;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, noteTime);
+
+      gain.gain.setValueAtTime(0.2, noteTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, noteTime + 0.12);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(noteTime);
+      osc.stop(noteTime + 0.12);
     });
 
     if ('vibrate' in navigator) {
@@ -108,6 +166,7 @@ class SoundFX {
     });
   }
 
+  // 游戏结束音效（低沉爆裂/下行音）
   playGameOver() {
     if (this.muted || !this.ctx) return;
     this.resume();
@@ -117,10 +176,10 @@ class SoundFX {
     const gain = this.ctx.createGain();
 
     osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(180, now);
-    osc.frequency.exponentialRampToValueAtTime(40, now + 0.4);
+    osc.frequency.setValueAtTime(220, now);
+    osc.frequency.exponentialRampToValueAtTime(45, now + 0.38);
 
-    gain.gain.setValueAtTime(0.3, now);
+    gain.gain.setValueAtTime(0.28, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
 
     osc.connect(gain);
@@ -228,6 +287,7 @@ class SnakeGame {
     this.snake = [];
     this.dir = { x: 1, y: 0 };
     this.nextDir = { x: 1, y: 0 };
+    this.inputQueue = [];
     this.food = null;
     this.bonusFood = null;
     this.obstacles = [];
@@ -431,39 +491,43 @@ class SnakeGame {
       return;
     }
 
-    switch (e.key) {
-      case 'ArrowUp':
-      case 'w':
-      case 'W':
-        e.preventDefault();
-        this.changeDirection(0, -1);
-        break;
-      case 'ArrowDown':
-      case 's':
-      case 'S':
-        e.preventDefault();
-        this.changeDirection(0, 1);
-        break;
-      case 'ArrowLeft':
-      case 'a':
-      case 'A':
-        e.preventDefault();
-        this.changeDirection(-1, 0);
-        break;
-      case 'ArrowRight':
-      case 'd':
-      case 'D':
-        e.preventDefault();
-        this.changeDirection(1, 0);
-        break;
+    const key = e.key;
+    const code = e.code;
+
+    if (code === 'KeyW' || key === 'w' || key === 'W' || key === 'ArrowUp') {
+      e.preventDefault();
+      this.changeDirection(0, -1);
+    } else if (code === 'KeyS' || key === 's' || key === 'S' || key === 'ArrowDown') {
+      e.preventDefault();
+      this.changeDirection(0, 1);
+    } else if (code === 'KeyA' || key === 'a' || key === 'A' || key === 'ArrowLeft') {
+      e.preventDefault();
+      this.changeDirection(-1, 0);
+    } else if (code === 'KeyD' || key === 'd' || key === 'D' || key === 'ArrowRight') {
+      e.preventDefault();
+      this.changeDirection(1, 0);
     }
   }
 
   changeDirection(x, y) {
     if (this.state !== 'RUNNING') return;
-    if (x !== 0 && this.dir.x !== 0 && x === -this.dir.x) return;
-    if (y !== 0 && this.dir.y !== 0 && y === -this.dir.y) return;
-    this.nextDir = { x, y };
+
+    // 获取队列中最后一个意图方向，若队列为空则使用当前生效方向 this.dir
+    const lastTarget = this.inputQueue.length > 0
+      ? this.inputQueue[this.inputQueue.length - 1]
+      : this.dir;
+
+    // 防反向：不能与最后意图方向相反
+    if (x !== 0 && lastTarget.x !== 0 && x === -lastTarget.x) return;
+    if (y !== 0 && lastTarget.y !== 0 && y === -lastTarget.y) return;
+
+    // 相同方向不重复入队
+    if (x === lastTarget.x && y === lastTarget.y) return;
+
+    // 限制队列最大长度（例如最多缓冲 2 个转弯操作）
+    if (this.inputQueue.length < 2) {
+      this.inputQueue.push({ x, y });
+    }
   }
 
   resetGame() {
@@ -481,6 +545,7 @@ class SnakeGame {
     ];
     this.dir = { x: 1, y: 0 };
     this.nextDir = { x: 1, y: 0 };
+    this.inputQueue = [];
 
     this.bonusFood = null;
     this.hideBonusBar();
@@ -600,7 +665,17 @@ class SnakeGame {
   }
 
   step() {
-    this.dir = this.nextDir;
+    if (this.inputQueue.length > 0) {
+      const targetDir = this.inputQueue.shift();
+      // 保证出队时依然不与当前生效的 this.dir 冲突（双重保险）
+      if (!(targetDir.x !== 0 && this.dir.x !== 0 && targetDir.x === -this.dir.x) &&
+          !(targetDir.y !== 0 && this.dir.y !== 0 && targetDir.y === -this.dir.y)) {
+        if (targetDir.x !== this.dir.x || targetDir.y !== this.dir.y) {
+          this.sound.playMove();
+        }
+        this.dir = targetDir;
+      }
+    }
     const head = this.snake[0];
     const newHead = {
       x: head.x + this.dir.x,
