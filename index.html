@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Snake Classic - 经典贪吃蛇</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="game-container">
+    <!-- 顶部状态栏 -->
+    <header class="game-header">
+      <div class="logo-area">
+        <h1 class="game-title">SNAKE <span class="neon-text">2077</span></h1>
+        <span class="subtitle">RETRO CYBERPUNK</span>
+      </div>
+
+      <div class="stats-board">
+        <div class="stat-box">
+          <span class="stat-label">SCORE</span>
+          <span class="stat-value" id="currentScore">0</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">BEST</span>
+          <span class="stat-value" id="bestScore">0</span>
+        </div>
+      </div>
+
+      <div class="controls-toolbar">
+        <div class="select-wrapper">
+          <label for="difficultySelect" class="sr-only">难度</label>
+          <select id="difficultySelect">
+            <option value="easy">简单 (Easy)</option>
+            <option value="normal" selected>普通 (Normal)</option>
+            <option value="hard">困难 (Hard)</option>
+          </select>
+        </div>
+        <button id="soundToggleBtn" class="icon-btn" title="切换音效 (M)" aria-label="切换音效">
+          <span id="soundIcon">🔊</span>
+        </button>
+        <button id="leaderboardBtn" class="icon-btn" title="查看排行榜" aria-label="查看排行榜">
+          🏆
+        </button>
+      </div>
+    </header>
+
+    <!-- 特殊食物倒计时条（激活时显示） -->
+    <div id="bonusBarContainer" class="bonus-bar-container hidden">
+      <div class="bonus-label">⚡ 特殊金果倒计时: <span id="bonusTimerText">5.0</span>s (+30分)</div>
+      <div class="bonus-progress-track">
+        <div id="bonusProgressBar" class="bonus-progress-fill"></div>
+      </div>
+    </div>
+
+    <!-- 游戏画布与覆盖层主视窗 -->
+    <main class="canvas-wrapper">
+      <canvas id="gameCanvas" width="600" height="600"></canvas>
+
+      <!-- 状态浮层：开始、暂停、游戏结束 -->
+      <div id="overlay" class="overlay active">
+        <div class="overlay-card">
+          <div id="startScreen" class="screen-view">
+            <h2 class="overlay-title">CYBER SNAKE</h2>
+            <p class="overlay-desc">经典重塑 · 霓虹光效 · 触手可及</p>
+            <div class="instruction-box">
+              <p>🎮 <strong>键盘方向键 / WASD</strong> 转向</p>
+              <p>⏸️ <strong>空格键 Space</strong> 暂停 / 继续</p>
+              <p>📱 <strong>触屏滑动</strong> 或下方 <strong>虚拟按键</strong> 操作</p>
+            </div>
+            <button id="startBtn" class="glow-btn">开始游戏 START</button>
+          </div>
+
+          <div id="pauseScreen" class="screen-view hidden">
+            <h2 class="overlay-title">PAUSED</h2>
+            <p class="overlay-desc">游戏已暂停</p>
+            <div class="overlay-actions">
+              <button id="resumeBtn" class="glow-btn">继续游戏 RESUME</button>
+              <button id="restartFromPauseBtn" class="secondary-btn">重新开始 RESTART</button>
+            </div>
+          </div>
+
+          <div id="gameOverScreen" class="screen-view hidden">
+            <h2 class="overlay-title text-danger">GAME OVER</h2>
+            <div class="final-score-box">
+              <div class="final-stat">
+                <span>最终得分</span>
+                <span id="finalScore" class="score-highlight">0</span>
+              </div>
+              <div class="final-stat">
+                <span>难度</span>
+                <span id="finalDifficulty">-</span>
+              </div>
+              <div id="newRecordBadge" class="new-record hidden">🎉 创造了新纪录！</div>
+            </div>
+            <div class="overlay-actions">
+              <button id="restartBtn" class="glow-btn">再来一局 PLAY AGAIN</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- 移动端虚拟按键与快捷控制 -->
+    <footer class="game-footer">
+      <div class="mobile-dpad" id="mobileDpad">
+        <div class="dpad-row">
+          <button class="dpad-btn up" id="dpadUp" aria-label="上">▲</button>
+        </div>
+        <div class="dpad-row middle">
+          <button class="dpad-btn left" id="dpadLeft" aria-label="左">◀</button>
+          <button class="dpad-btn center-action" id="dpadPause" aria-label="暂停">⏸</button>
+          <button class="dpad-btn right" id="dpadRight" aria-label="右">▶</button>
+        </div>
+        <div class="dpad-row">
+          <button class="dpad-btn down" id="dpadDown" aria-label="下">▼</button>
+        </div>
+      </div>
+      <div class="footer-tips">
+        <span>快捷提示: [空格] 暂停/继续 | [M] 音效切换 | 滑动手势灵敏支持</span>
+      </div>
+    </footer>
+
+    <!-- 排行榜弹窗模态框 -->
+    <div id="leaderboardModal" class="modal hidden">
+      <div class="modal-backdrop" id="modalBackdrop"></div>
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h3>🏆 TOP 5 本地排行榜</h3>
+          <button id="closeModalBtn" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <table class="leaderboard-table">
+            <thead>
+              <tr>
+                <th>排名</th>
+                <th>得分</th>
+                <th>难度</th>
+                <th>达成时间</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboardBody">
+              <!-- 动态插入 -->
+            </tbody>
+          </table>
+          <div id="emptyLeaderboard" class="empty-tip hidden">暂无战绩，快去刷新记录吧！</div>
+        </div>
+        <div class="modal-footer">
+          <button id="clearLeaderboardBtn" class="danger-link-btn">清空排行数据</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
