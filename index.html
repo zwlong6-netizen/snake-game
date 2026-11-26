@@ -3,50 +3,101 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Snake Classic - 经典贪吃蛇</title>
+  <title>Snake Classic v2.0 - 经典贪吃蛇</title>
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&display=swap" rel="stylesheet">
 </head>
-<body>
+<body data-theme="cyberpunk">
   <div class="game-container">
-    <!-- 顶部数据看板 (Header & Scoreboard) -->
+    <!-- 顶部数据与控制看板 (Header & Scoreboard) -->
     <header class="game-header">
-      <div class="logo-area">
-        <h1 class="game-title">🐍 SNAKE <span class="neon-text">CLASSIC</span></h1>
+      <div class="header-top-row">
+        <div class="logo-area">
+          <h1 class="game-title">🐍 SNAKE <span class="neon-text">2.0</span></h1>
+        </div>
+
+        <div class="stats-board">
+          <div class="stat-box">
+            <span class="stat-label">SCORE</span>
+            <span class="stat-value" id="currentScore">0</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">👑 BEST</span>
+            <span class="stat-value best-val" id="bestScore">0</span>
+          </div>
+        </div>
+
+        <div class="controls-toolbar">
+          <button id="soundToggleBtn" class="icon-btn btn-arcade" title="切换音效 (M)" aria-label="切换音效">
+            <span id="soundIcon">🔊</span>
+          </button>
+          <button id="leaderboardBtn" class="icon-btn btn-arcade" title="查看排行榜" aria-label="查看排行榜">
+            🏆
+          </button>
+        </div>
       </div>
 
-      <div class="stats-board">
-        <div class="stat-box">
-          <span class="stat-label">SCORE</span>
-          <span class="stat-value" id="currentScore">0</span>
+      <!-- 2.0 玩法选择配置栏（主题、地图、边界模式） -->
+      <div class="config-toolbar">
+        <div class="config-item">
+          <label for="themeSelect" class="config-label">🎨 皮肤</label>
+          <div class="select-wrapper">
+            <select id="themeSelect">
+              <option value="cyberpunk" selected>Cyberpunk (霓虹暗黑)</option>
+              <option value="gameboy">GameBoy (复古绿黑)</option>
+              <option value="paper">Paper (极简白昼)</option>
+              <option value="rainbow">Rainbow (彩虹流光)</option>
+            </select>
+          </div>
         </div>
-        <div class="stat-box">
-          <span class="stat-label">👑 BEST</span>
-          <span class="stat-value best-val" id="bestScore">0</span>
-        </div>
-      </div>
 
-      <div class="controls-toolbar">
-        <div class="select-wrapper">
-          <label for="difficultySelect" class="sr-only">难度</label>
-          <select id="difficultySelect">
-            <option value="easy">简单 (Easy)</option>
-            <option value="normal" selected>普通 (Normal)</option>
-            <option value="hard">困难 (Hard)</option>
-          </select>
+        <div class="config-item">
+          <label for="mapSelect" class="config-label">🗺️ 地图</label>
+          <div class="select-wrapper">
+            <select id="mapSelect">
+              <option value="empty" selected>经典空旷 (Open)</option>
+              <option value="pillar">中央立柱 (Pillar)</option>
+              <option value="cross">十字隔墙 (Cross)</option>
+              <option value="maze">迷宫通道 (Maze)</option>
+            </select>
+          </div>
         </div>
-        <button id="soundToggleBtn" class="icon-btn btn-arcade" title="切换音效 (M)" aria-label="切换音效">
-          <span id="soundIcon">🔊</span>
-        </button>
-        <button id="leaderboardBtn" class="icon-btn btn-arcade" title="查看排行榜" aria-label="查看排行榜">
-          🏆
-        </button>
+
+        <div class="config-item">
+          <label for="difficultySelect" class="config-label">⚡ 难度</label>
+          <div class="select-wrapper">
+            <select id="difficultySelect">
+              <option value="easy">简单 (Easy)</option>
+              <option value="normal" selected>普通 (Normal)</option>
+              <option value="hard">困难 (Hard)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="config-item boundary-item">
+          <span class="config-label">🚪 边界</span>
+          <div class="boundary-toggle" id="boundaryToggle" role="group" aria-label="边界模式切换">
+            <button type="button" class="boundary-btn active" data-boundary="hard" id="boundaryHardBtn" title="碰壁死亡">碰壁死亡</button>
+            <button type="button" class="boundary-btn" data-boundary="portal" id="boundaryPortalBtn" title="穿墙无界">穿墙传送</button>
+          </div>
+        </div>
       </div>
     </header>
 
-    <!-- 特殊食物倒计时条（激活时显示） -->
+    <!-- 2.0 Combo 连击看板与倒计时进度条 -->
+    <div id="comboContainer" class="combo-container hidden">
+      <div class="combo-header">
+        <span class="combo-badge" id="comboBadge">⚡ COMBO x2</span>
+        <span class="combo-timer-text">剩余 <span id="comboTimerText">3.5</span>s</span>
+      </div>
+      <div class="combo-progress-track">
+        <div id="comboProgressBar" class="combo-progress-fill"></div>
+      </div>
+    </div>
+
+    <!-- 特殊金果倒计时条（激活时显示） -->
     <div id="bonusBarContainer" class="bonus-bar-container hidden">
       <div class="bonus-label">★ 限时金果倒计时: <span id="bonusTimerText">5.0</span>s (+30分)</div>
       <div class="bonus-progress-track">
@@ -55,7 +106,13 @@
     </div>
 
     <!-- 游戏画布与覆盖层主视窗 -->
-    <main class="canvas-wrapper">
+    <main class="canvas-wrapper hard-boundary" id="canvasWrapper">
+      <!-- 传送门光效四角/边缘装饰（穿墙模式时显现） -->
+      <div class="portal-glow portal-top"></div>
+      <div class="portal-glow portal-bottom"></div>
+      <div class="portal-glow portal-left"></div>
+      <div class="portal-glow portal-right"></div>
+
       <canvas id="gameCanvas" width="400" height="400"></canvas>
 
       <!-- 状态浮层：开始、暂停、游戏结束 -->
@@ -63,13 +120,14 @@
         <div class="overlay-card">
           <!-- 初始就绪态 -->
           <div id="startScreen" class="screen-view">
-            <h2 class="overlay-title">🐍 SNAKE CLASSIC</h2>
-            <p class="overlay-desc">经典重塑 · 极简霓虹 · 触手可及</p>
+            <h2 class="overlay-title">🐍 SNAKE 2.0</h2>
+            <p class="overlay-desc">4大地图 · 穿墙传送 · 连击音阶 · 绚丽皮肤</p>
             <div class="instruction-box">
-              <p>🎮 <strong>WASD / 方向键</strong> 控制移动</p>
+              <p>🎮 <strong>WASD / 方向键</strong> 控制移动转向</p>
               <p>⏸️ <strong>空格键 Space</strong> 暂停 / 继续</p>
-              <p>🔊 <strong>M 键</strong> 快速切换静音</p>
-              <p>📱 <strong>屏幕手势滑动</strong> 或下方 <strong>虚拟十字键</strong></p>
+              <p>⚡ <strong>3.5s 连续吃果</strong> 激活 Combo x2~x5 倍率加成与音阶跃升</p>
+              <p>🎨 <strong>支持随时切换</strong> 皮肤、地图与硬墙/穿墙模式</p>
+              <p>📱 <strong>移动端</strong> 支持屏幕手势滑动与下方虚拟十字键</p>
             </div>
             <button id="startBtn" class="btn-arcade glow-btn">开始游戏 🎮</button>
           </div>
@@ -77,7 +135,7 @@
           <!-- 暂停态 -->
           <div id="pauseScreen" class="screen-view hidden">
             <h2 class="overlay-title">⏸️ 游戏已暂停</h2>
-            <p class="overlay-desc">按空格键或点击屏幕继续游戏</p>
+            <p class="overlay-desc">按空格键或点击下方按钮继续</p>
             <div class="overlay-actions">
               <button id="resumeBtn" class="btn-arcade glow-btn">继续游戏 RESUME</button>
               <button id="restartFromPauseBtn" class="btn-arcade secondary-btn">重新开始 RESTART</button>
@@ -93,7 +151,15 @@
                 <span id="finalScore" class="score-highlight">0</span>
               </div>
               <div class="final-stat">
-                <span>当前难度</span>
+                <span>最大连击</span>
+                <span id="finalMaxCombo" class="combo-highlight">x1</span>
+              </div>
+              <div class="final-stat">
+                <span>当前地图 / 边界</span>
+                <span id="finalMapMode">-</span>
+              </div>
+              <div class="final-stat">
+                <span>难度级别</span>
                 <span id="finalDifficulty">-</span>
               </div>
               <div id="newRecordBadge" class="new-record hidden">🎉 NEW HIGH SCORE!</div>
@@ -141,7 +207,7 @@
               <tr>
                 <th>排名</th>
                 <th>得分</th>
-                <th>难度</th>
+                <th>难度/模式</th>
                 <th>达成时间</th>
               </tr>
             </thead>

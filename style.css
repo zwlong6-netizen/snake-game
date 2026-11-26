@@ -1,38 +1,146 @@
 /* ========================================================
-   贪吃蛇游戏（Snake Classic）UI 设计规范落地样式表
+   贪吃蛇游戏（Snake Classic v2.0）UI 设计规范落地样式表
    严格遵循 /Users/zwl/orca/projects/demo-1123/UI-DESIGN.md
    ======================================================== */
 
-:root {
-  /* 背景与结构色 */
-  --bg-primary: #0b0f19;          /* 页面深黑底色（暗夜空间） */
-  --bg-surface: #151d2f;          /* 卡片与操作面板表面色 */
-  --bg-board: #070a10;            /* 游戏 Canvas 棋盘深邃底色 */
-  --border-subtle: rgba(255, 255, 255, 0.08); /* 极细边框分隔线 */
-  --border-highlight: rgba(99, 102, 241, 0.3);
+/* 1. 四套主题变量定义 (Design Tokens) */
+/* 默认：Theme 1 - Cyberpunk（霓虹暗黑） */
+[data-theme="cyberpunk"], :root {
+  --bg-primary: #0b0f19;          /* 暗夜深空底色 */
+  --bg-surface: #151d2f;          /* 面板与毛玻璃卡片 */
+  --bg-board: #070a10;            /* 棋盘 Canvas 背景 */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-highlight: rgba(99, 102, 241, 0.4);
 
-  /* 游戏实体主色与发光 */
-  --snake-head: #22c55e;          /* 蛇头荧光绿（主导聚焦） */
-  --snake-head-glow: rgba(34, 197, 94, 0.5);
-  --snake-body: #4ade80;          /* 蛇身微浅荧光绿 */
-  --food-apple: #ef4444;          /* 普通食物红苹果（暖红） */
-  --food-apple-glow: rgba(239, 68, 68, 0.6);
-  --food-golden: #fbbf24;         /* 金色限时果（香槟金） */
-  --food-golden-glow: rgba(251, 191, 36, 0.8);
-  --obstacle-color: #64748b;      /* 静态障碍物冷岩灰 */
+  --snake-head: #22c55e;          /* 荧光翠绿 */
+  --snake-head-glow: rgba(34, 197, 94, 0.6);
+  --snake-body: #4ade80;
+  --snake-eye: #ffffff;
+  --snake-tongue: #f43f5e;        /* 荧光玫红蛇信 */
 
-  /* 文字色阶 */
-  --text-primary: #f8fafc;        /* 主标题与关键分数高亮 */
-  --text-secondary: #94a3b8;      /* 辅助提示与副标签 */
-  --text-muted: #475569;          /* 次要键盘提示/版权信息 */
+  --food-apple: #ef4444;          /* 暖红发光苹果 */
+  --food-apple-glow: rgba(239, 68, 68, 0.7);
+  --food-golden: #fbbf24;         /* 金色限时果 */
+  --food-golden-glow: rgba(251, 191, 36, 0.85);
 
-  /* 状态与强调色 */
-  --accent-primary: #6366f1;      /* 核心主按钮（电光靛蓝） */
-  --accent-hover: #4f46e5;
-  --accent-score: #38bdf8;        /* 得分高亮荧光天蓝 */
+  --obstacle-color: #475569;      /* 冷岩灰静态砖块 */
+  --obstacle-border: #64748b;
+
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #475569;
+
+  --accent-primary: #6366f1;      /* 靛蓝主按键 */
+  --accent-score: #38bdf8;        /* 荧光天蓝得分 */
+  --combo-bar: linear-gradient(90deg, #6366f1, #38bdf8);
   --danger: #f43f5e;              /* 死亡/碰撞警示红 */
 
-  /* 字体排版系统 */
+  --portal-color: rgba(56, 189, 248, 0.5);
+}
+
+/* Theme 2 - GameBoy（复古绿黑经典液晶） */
+[data-theme="gameboy"] {
+  --bg-primary: #8b956d;          /* 经典墨绿外壳底色 */
+  --bg-surface: #9bbc0f;          /* 浅绿液晶卡片 */
+  --bg-board: #8bac0f;            /* 液晶屏核心绿色 */
+  --border-subtle: #306230;
+  --border-highlight: #0f380f;
+
+  --snake-head: #0f380f;          /* 4阶最深像素绿 */
+  --snake-head-glow: transparent; /* 无发光 */
+  --snake-body: #306230;          /* 次深绿 */
+  --snake-eye: #8bac0f;
+  --snake-tongue: #0f380f;
+
+  --food-apple: #0f380f;          /* 像素深暗果实 */
+  --food-apple-glow: transparent;
+  --food-golden: #306230;
+  --food-golden-glow: transparent;
+
+  --obstacle-color: #0f380f;      /* 纯色实体砖块 */
+  --obstacle-border: #306230;
+
+  --text-primary: #0f380f;
+  --text-secondary: #306230;
+  --text-muted: #4f734f;
+
+  --accent-primary: #306230;
+  --accent-score: #0f380f;
+  --combo-bar: #0f380f;
+  --danger: #0f380f;
+
+  --portal-color: rgba(15, 56, 15, 0.4);
+}
+
+/* Theme 3 - Paper（极简白昼水墨） */
+[data-theme="paper"] {
+  --bg-primary: #f8fafc;          /* 柔和米白纸质感 */
+  --bg-surface: #ffffff;          /* 纯白卡片面板 */
+  --bg-board: #f1f5f9;            /* 浅灰白 Canvas */
+  --border-subtle: #e2e8f0;
+  --border-highlight: #cbd5e1;
+
+  --snake-head: #1e293b;          /* 极简深灰黑 */
+  --snake-head-glow: rgba(0, 0, 0, 0.1);
+  --snake-body: #475569;          /* 水墨铅灰 */
+  --snake-eye: #ffffff;
+  --snake-tongue: #e11d48;
+
+  --food-apple: #dc2626;          /* 纯净正红印章色 */
+  --food-apple-glow: rgba(220, 38, 38, 0.2);
+  --food-golden: #d97706;         /* 琥珀金印 */
+  --food-golden-glow: rgba(217, 119, 6, 0.25);
+
+  --obstacle-color: #94a3b8;      /* 浅灰砖石 */
+  --obstacle-border: #64748b;
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+
+  --accent-primary: #0f172a;      /* 极简深黑按钮 */
+  --accent-score: #2563eb;        /* 典雅群青 */
+  --combo-bar: linear-gradient(90deg, #0f172a, #2563eb);
+  --danger: #e11d48;
+
+  --portal-color: rgba(37, 99, 235, 0.35);
+}
+
+/* Theme 4 - Rainbow Streamer（彩虹流光） */
+[data-theme="rainbow"] {
+  --bg-primary: #08071a;          /* 深邃幻彩暗紫底色 */
+  --bg-surface: #13112b;
+  --bg-board: #0c0a1f;
+  --border-subtle: rgba(255, 255, 255, 0.1);
+  --border-highlight: #ec4899;
+
+  --snake-head: #ec4899;          /* 霓虹粉紫蛇头 */
+  --snake-head-glow: rgba(236, 72, 153, 0.7);
+  --snake-body: #8b5cf6;
+  --snake-eye: #ffffff;
+  --snake-tongue: #38bdf8;
+
+  --food-apple: #f43f5e;
+  --food-apple-glow: rgba(244, 63, 94, 0.75);
+  --food-golden: #facc15;
+  --food-golden-glow: rgba(250, 204, 21, 0.9);
+
+  --obstacle-color: #312e81;      /* 幻夜靛蓝结晶障碍 */
+  --obstacle-border: #6366f1;
+
+  --text-primary: #ffffff;
+  --text-secondary: #c084fc;
+  --text-muted: #6b21a8;
+
+  --accent-primary: #8b5cf6;
+  --accent-score: #f472b6;
+  --combo-bar: linear-gradient(90deg, #ec4899, #8b5cf6, #06b6d4, #10b981);
+  --danger: #f43f5e;
+
+  --portal-color: rgba(236, 72, 153, 0.5);
+}
+
+:root {
   --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-numeric: "Chakra Petch", "Courier New", monospace;
 }
@@ -47,10 +155,6 @@
 
 body {
   background-color: var(--bg-primary);
-  background-image: 
-    radial-gradient(circle at 50% 12%, rgba(99, 102, 241, 0.12) 0%, transparent 55%),
-    radial-gradient(circle at 80% 85%, rgba(34, 197, 94, 0.08) 0%, transparent 45%),
-    linear-gradient(var(--bg-primary), var(--bg-primary));
   color: var(--text-primary);
   font-family: var(--font-body);
   min-height: 100vh;
@@ -59,30 +163,39 @@ body {
   align-items: center;
   overflow-x: hidden;
   touch-action: manipulation;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 .game-container {
   width: 100%;
-  max-width: 480px;
-  padding: 16px 12px;
+  max-width: 500px;
+  padding: 12px 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
-/* 4.1 顶部数据看板（Header & Scoreboard） */
+/* 顶部数据与控制看板 */
 .game-header {
   width: 100%;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 10px;
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   backdrop-filter: blur(12px);
   padding: 10px 14px;
   border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  transition: background 0.25s ease, border-color 0.25s ease;
+}
+
+.header-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 }
 
 .logo-area {
@@ -105,18 +218,18 @@ body {
 
 .stats-board {
   display: flex;
-  gap: 10px;
+  gap: 8px;
 }
 
 .stat-box {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.25);
   padding: 4px 10px;
   border-radius: 8px;
   border: 1px solid var(--border-subtle);
-  min-width: 64px;
+  min-width: 60px;
 }
 
 .stat-label {
@@ -128,10 +241,10 @@ body {
 
 .stat-value {
   font-family: var(--font-numeric);
-  font-size: 1.35rem;
+  font-size: 1.3rem;
   font-weight: 700;
   color: var(--accent-score);
-  text-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+  text-shadow: 0 0 8px rgba(56, 189, 248, 0.35);
   transition: transform 0.15s ease-out;
 }
 
@@ -150,27 +263,8 @@ body {
   gap: 6px;
 }
 
-.select-wrapper select {
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-primary);
-  padding: 5px 8px;
-  border-radius: 8px;
-  font-family: var(--font-body);
-  font-size: 0.8rem;
-  outline: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.select-wrapper select:focus,
-.select-wrapper select:hover {
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 8px rgba(99, 102, 241, 0.35);
-}
-
 .icon-btn {
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.25);
   border: 1px solid var(--border-subtle);
   color: var(--text-primary);
   font-size: 1.05rem;
@@ -184,25 +278,142 @@ body {
 }
 
 .icon-btn:hover {
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 10px rgba(99, 102, 241, 0.35);
+  border-color: var(--border-highlight);
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.25);
 }
 
-/* 6. 前端样式与动效落地（按钮规范） */
-.btn-arcade {
-  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s ease, background 0.15s ease;
+/* 2.0 配置工具栏：皮肤、地图、难度、边界 */
+.config-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-subtle);
 }
 
-.btn-arcade:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(99, 102, 241, 0.35);
+.config-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
 }
 
-.btn-arcade:active {
-  transform: translateY(1px);
+.config-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
 }
 
-/* 限时金色食物倒计时条 */
+.select-wrapper select {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  padding: 4px 7px;
+  border-radius: 6px;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.select-wrapper select:focus,
+.select-wrapper select:hover {
+  border-color: var(--border-highlight);
+}
+
+/* 边界模式胶囊切换控件 */
+.boundary-toggle {
+  display: flex;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.boundary-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  padding: 3px 7px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.boundary-btn.active {
+  background: var(--accent-primary);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
+}
+
+/* 2.0 Combo 连击看板与倒计时进度条 */
+.combo-container {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-highlight);
+  border-radius: 8px;
+  padding: 6px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  transition: all 0.2s ease;
+}
+
+.combo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.combo-badge {
+  font-family: var(--font-numeric);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent-score);
+  letter-spacing: 0.5px;
+  transition: transform 0.15s ease;
+}
+
+.combo-badge.pop {
+  transform: scale(1.22);
+}
+
+.combo-badge.burn {
+  color: #fbbf24;
+  animation: combo-burn 0.8s infinite alternate;
+}
+
+.combo-timer-text {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  font-family: var(--font-numeric);
+}
+
+.combo-progress-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.combo-progress-fill {
+  height: 100%;
+  width: 100%;
+  background: var(--combo-bar);
+  border-radius: 3px;
+  box-shadow: 0 0 8px rgba(99, 102, 241, 0.5);
+  transition: width 50ms linear;
+}
+
+/* 限时金果倒计时条 */
 .bonus-bar-container {
   width: 100%;
   background: rgba(251, 191, 36, 0.1);
@@ -248,14 +459,56 @@ body {
   position: relative;
   width: 400px;
   height: 400px;
-  max-width: calc(100vw - 32px);
-  max-height: calc(100vw - 32px);
+  max-width: calc(100vw - 28px);
+  max-height: calc(100vw - 28px);
   aspect-ratio: 1 / 1;
   background: var(--bg-board);
-  border: 2px solid #1e293b;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), inset 0 0 20px rgba(34, 197, 94, 0.04);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* 硬边界模式样式 */
+.canvas-wrapper.hard-boundary {
+  border: 2px solid var(--border-highlight);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 12px rgba(244, 63, 94, 0.2);
+}
+
+/* 穿墙模式样式（半透明虚线或发光传送门边框） */
+.canvas-wrapper.portal-boundary {
+  border: 2px dashed var(--portal-color);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), inset 0 0 18px var(--portal-color);
+}
+
+/* 穿墙传送门边缘光效 */
+.portal-glow {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 5;
+}
+
+.portal-boundary .portal-glow {
+  opacity: 0.6;
+}
+
+.portal-top {
+  top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, transparent, var(--portal-color), transparent);
+}
+.portal-bottom {
+  bottom: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, transparent, var(--portal-color), transparent);
+}
+.portal-left {
+  top: 0; bottom: 0; left: 0; width: 3px;
+  background: linear-gradient(180deg, transparent, var(--portal-color), transparent);
+}
+.portal-right {
+  top: 0; bottom: 0; right: 0; width: 3px;
+  background: linear-gradient(180deg, transparent, var(--portal-color), transparent);
 }
 
 canvas#gameCanvas {
@@ -264,7 +517,45 @@ canvas#gameCanvas {
   display: block;
 }
 
-/* 5. 游戏状态覆盖层（State Overlays） */
+/* 屏幕震颤动效 */
+@keyframes screen-shake {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(-4px, 2px); }
+  40% { transform: translate(4px, -3px); }
+  60% { transform: translate(-3px, -2px); }
+  80% { transform: translate(3px, 2px); }
+  100% { transform: translate(0, 0); }
+}
+
+.screen-shake {
+  animation: screen-shake 0.16s ease-in-out;
+}
+
+/* Combo Max 高能光晕燃烧 */
+@keyframes combo-burn {
+  0%, 100% {
+    filter: drop-shadow(0 0 5px #f43f5e) drop-shadow(0 0 10px #fbbf24);
+  }
+  50% {
+    filter: drop-shadow(0 0 12px #ec4899) drop-shadow(0 0 18px #f59e0b);
+  }
+}
+
+/* 按钮通用 */
+.btn-arcade {
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.btn-arcade:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(99, 102, 241, 0.35);
+}
+
+.btn-arcade:active {
+  transform: translateY(1px);
+}
+
+/* 状态覆盖层 */
 .overlay {
   position: absolute;
   top: 0;
@@ -282,6 +573,10 @@ canvas#gameCanvas {
   z-index: 10;
 }
 
+[data-theme="paper"] .overlay {
+  background: rgba(248, 250, 252, 0.88);
+}
+
 .overlay.active {
   opacity: 1;
   pointer-events: auto;
@@ -289,8 +584,8 @@ canvas#gameCanvas {
 
 .overlay-card {
   text-align: center;
-  padding: 22px 20px;
-  max-width: 90%;
+  padding: 20px 18px;
+  max-width: 92%;
   background: var(--bg-surface);
   border: 1px solid var(--border-highlight);
   border-radius: 14px;
@@ -313,23 +608,23 @@ canvas#gameCanvas {
 
 .text-danger {
   color: var(--danger) !important;
-  text-shadow: 0 0 12px rgba(244, 63, 94, 0.6) !important;
+  text-shadow: 0 0 12px rgba(244, 63, 94, 0.5) !important;
 }
 
 .overlay-desc {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   color: var(--text-secondary);
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .instruction-box {
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.25);
   padding: 10px 14px;
   border-radius: 8px;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   text-align: left;
-  line-height: 1.7;
-  margin-bottom: 18px;
+  line-height: 1.65;
+  margin-bottom: 16px;
   color: var(--text-secondary);
   border-left: 3px solid var(--snake-head);
 }
@@ -344,11 +639,11 @@ canvas#gameCanvas {
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  box-shadow: 0 0 14px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 0 14px rgba(99, 102, 241, 0.35);
 }
 
 .glow-btn:hover {
-  box-shadow: 0 0 22px rgba(99, 102, 241, 0.7);
+  box-shadow: 0 0 22px rgba(99, 102, 241, 0.65);
 }
 
 .secondary-btn {
@@ -389,26 +684,33 @@ canvas#gameCanvas {
 }
 
 .final-score-box {
-  background: rgba(0, 0, 0, 0.4);
-  padding: 12px 14px;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 10px 14px;
   border-radius: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .final-stat {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 4px 0;
-  font-size: 0.85rem;
+  padding: 3px 0;
+  font-size: 0.82rem;
   color: var(--text-secondary);
 }
 
 .score-highlight {
   font-family: var(--font-numeric);
-  font-size: 1.45rem;
+  font-size: 1.4rem;
   font-weight: 700;
   color: var(--accent-score);
+}
+
+.combo-highlight {
+  font-family: var(--font-numeric);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fbbf24;
 }
 
 .new-record {
@@ -419,11 +721,11 @@ canvas#gameCanvas {
   border-radius: 6px;
   color: var(--food-golden);
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   animation: pulseGolden 1s infinite alternate;
 }
 
-/* 4.3 底部移动端虚拟十字键 (Virtual D-Pad) */
+/* 底部移动端虚拟十字键 (Virtual D-Pad) */
 .game-footer {
   width: 100%;
   display: flex;
@@ -516,7 +818,7 @@ canvas#gameCanvas {
   border: 1px solid var(--border-highlight);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8), 0 0 25px rgba(99, 102, 241, 0.2);
   width: 90%;
-  max-width: 400px;
+  max-width: 420px;
   border-radius: 12px;
   padding: 18px;
   display: flex;
@@ -554,7 +856,7 @@ canvas#gameCanvas {
 .leaderboard-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   text-align: center;
 }
 
@@ -566,7 +868,7 @@ canvas#gameCanvas {
 }
 
 .leaderboard-table td {
-  padding: 8px 6px;
+  padding: 8px 5px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
 
@@ -598,18 +900,6 @@ canvas#gameCanvas {
 
 .hidden {
   display: none !important;
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
 }
 
 /* 响应式适配：桌面端隐藏虚拟按键 */
