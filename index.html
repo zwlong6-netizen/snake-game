@@ -86,22 +86,25 @@
       </div>
     </header>
 
-    <!-- 2.0 Combo 连击看板与倒计时进度条 -->
-    <div id="comboContainer" class="combo-container hidden">
-      <div class="combo-header">
-        <span class="combo-badge" id="comboBadge">⚡ COMBO x2</span>
-        <span class="combo-timer-text">剩余 <span id="comboTimerText">3.5</span>s</span>
+    <!-- 状态指示条容器（固定高度占位，杜绝文档流高度抖动） -->
+    <div class="status-indicators-slot">
+      <!-- 2.0 Combo 连击看板与倒计时进度条 -->
+      <div id="comboContainer" class="combo-container hidden">
+        <div class="combo-header">
+          <span class="combo-badge" id="comboBadge">⚡ COMBO x2</span>
+          <span class="combo-timer-text">剩余 <span id="comboTimerText">3.5</span>s</span>
+        </div>
+        <div class="combo-progress-track">
+          <div id="comboProgressBar" class="combo-progress-fill"></div>
+        </div>
       </div>
-      <div class="combo-progress-track">
-        <div id="comboProgressBar" class="combo-progress-fill"></div>
-      </div>
-    </div>
 
-    <!-- 特殊金果倒计时条（激活时显示） -->
-    <div id="bonusBarContainer" class="bonus-bar-container hidden">
-      <div class="bonus-label">★ 限时金果倒计时: <span id="bonusTimerText">5.0</span>s (+30分)</div>
-      <div class="bonus-progress-track">
-        <div id="bonusProgressBar" class="bonus-progress-fill"></div>
+      <!-- 特殊金果倒计时条（激活时显示） -->
+      <div id="bonusBarContainer" class="bonus-bar-container hidden">
+        <div class="bonus-label">★ 限时金果倒计时: <span id="bonusTimerText">5.0</span>s (+30分)</div>
+        <div class="bonus-progress-track">
+          <div id="bonusProgressBar" class="bonus-progress-fill"></div>
+        </div>
       </div>
     </div>
 
@@ -113,7 +116,7 @@
       <div class="portal-glow portal-left"></div>
       <div class="portal-glow portal-right"></div>
 
-      <canvas id="gameCanvas" width="400" height="400"></canvas>
+      <canvas id="gameCanvas" width="560" height="560"></canvas>
 
       <!-- 状态浮层：开始、暂停、游戏结束 -->
       <div id="overlay" class="overlay active">

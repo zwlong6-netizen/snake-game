@@ -168,7 +168,7 @@ body {
 
 .game-container {
   width: 100%;
-  max-width: 500px;
+  max-width: 640px;
   padding: 12px 10px;
   display: flex;
   flex-direction: column;
@@ -352,9 +352,24 @@ body {
   box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
 }
 
+/* 状态指示条容器：固定高度占位 (height 锁定 88px)，杜绝 Combo/金果倒计时条出入引起文档流重排与 Canvas 上下抖动 */
+.status-indicators-slot {
+  width: 100%;
+  height: 88px;
+  min-height: 88px;
+  max-height: 88px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 6px;
+  overflow: visible;
+}
+
 /* 2.0 Combo 连击看板与倒计时进度条 */
 .combo-container {
   width: 100%;
+  height: 40px;
+  box-sizing: border-box;
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid var(--border-highlight);
   border-radius: 8px;
@@ -363,7 +378,16 @@ body {
   flex-direction: column;
   gap: 4px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-  transition: all 0.2s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+  opacity: 1;
+  visibility: visible;
+}
+
+.combo-container.hidden {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none;
+  transform: translateY(-2px);
 }
 
 .combo-header {
@@ -416,6 +440,8 @@ body {
 /* 限时金果倒计时条 */
 .bonus-bar-container {
   width: 100%;
+  height: 40px;
+  box-sizing: border-box;
   background: rgba(251, 191, 36, 0.1);
   border: 1px solid rgba(251, 191, 36, 0.35);
   border-radius: 8px;
@@ -424,6 +450,16 @@ body {
   flex-direction: column;
   gap: 3px;
   animation: pulseGolden 1.5s infinite alternate;
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+  opacity: 1;
+  visibility: visible;
+}
+
+.bonus-bar-container.hidden {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none;
+  transform: translateY(-2px);
 }
 
 @keyframes pulseGolden {
@@ -454,13 +490,13 @@ body {
   transition: width 0.1s linear;
 }
 
-/* 4.2 游戏画布区（Game Canvas）: 400px x 400px 基准 */
+/* 4.2 游戏画布区（Game Canvas）: 560px x 560px 基准 (20x20 网格, 每格 28px) */
 .canvas-wrapper {
   position: relative;
-  width: 400px;
-  height: 400px;
-  max-width: calc(100vw - 28px);
-  max-height: calc(100vw - 28px);
+  width: 560px;
+  height: 560px;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vw - 24px);
   aspect-ratio: 1 / 1;
   background: var(--bg-board);
   border-radius: 12px;

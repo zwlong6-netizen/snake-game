@@ -385,9 +385,9 @@ class SnakeGame {
     this.ctx = this.canvas.getContext('2d');
     this.canvasWrapper = document.getElementById('canvasWrapper');
 
-    // 20x20 标准网格系统
+    // 20x20 标准网格系统 (560x560 视口下每个网格为 28x28px)
     this.GRID_SIZE = 20;
-    this.CELL_SIZE = this.canvas.width / this.GRID_SIZE; // 400 / 20 = 20px
+    this.CELL_SIZE = this.canvas.width / this.GRID_SIZE; // 560 / 20 = 28px (或自适应)
 
     // 音效与粒子
     this.sound = new SoundFX();
@@ -1454,98 +1454,101 @@ class SnakeGame {
       ctx.fill();
       ctx.restore();
 
-      // 周期吐信微动效（舌尖探出与收回：每 1.2s 一次，持续 160ms）
+      // 周期吐信微动效（舌尖探出与收回：每 1.2s 一次，持续 160ms，按网格比例自适应缩放）
       const now = performance.now();
       const tongueCycle = now % 1200;
       if (tongueCycle < 180 && this.state === 'RUNNING') {
         const tongueProgress = Math.sin((tongueCycle / 180) * Math.PI);
-        const tongueLen = 4.5 * tongueProgress;
+        const tongueScale = cs / 20; // 基准网格比例因子
+        const tongueLen = 4.5 * tongueScale * tongueProgress;
+        const forkWidth = 1.8 * tongueScale;
+        const forkLen = 2.0 * tongueScale;
 
         ctx.save();
         ctx.strokeStyle = tokens.snakeTongue;
-        ctx.lineWidth = 1.6;
+        ctx.lineWidth = Math.max(1.5, 1.6 * tongueScale);
         ctx.lineCap = 'round';
 
         let tx = hx + cs / 2;
         let ty = hy + cs / 2;
-        let fork1X, fork1Y, fork2X, fork2Y;
 
         if (this.dir.x === 1) { // 向右
           tx = hx + cs - 1;
           ctx.beginPath();
           ctx.moveTo(tx, ty);
           ctx.lineTo(tx + tongueLen, ty);
-          ctx.lineTo(tx + tongueLen + 2, ty - 1.8);
+          ctx.lineTo(tx + tongueLen + forkLen, ty - forkWidth);
           ctx.moveTo(tx + tongueLen, ty);
-          ctx.lineTo(tx + tongueLen + 2, ty + 1.8);
+          ctx.lineTo(tx + tongueLen + forkLen, ty + forkWidth);
           ctx.stroke();
         } else if (this.dir.x === -1) { // 向左
           tx = hx + 1;
           ctx.beginPath();
           ctx.moveTo(tx, ty);
           ctx.lineTo(tx - tongueLen, ty);
-          ctx.lineTo(tx - tongueLen - 2, ty - 1.8);
+          ctx.lineTo(tx - tongueLen - forkLen, ty - forkWidth);
           ctx.moveTo(tx - tongueLen, ty);
-          ctx.lineTo(tx - tongueLen - 2, ty + 1.8);
+          ctx.lineTo(tx - tongueLen - forkLen, ty + forkWidth);
           ctx.stroke();
         } else if (this.dir.y === -1) { // 向上
           ty = hy + 1;
           ctx.beginPath();
           ctx.moveTo(tx, ty);
           ctx.lineTo(tx, ty - tongueLen);
-          ctx.lineTo(tx - 1.8, ty - tongueLen - 2);
+          ctx.lineTo(tx - forkWidth, ty - tongueLen - forkLen);
           ctx.moveTo(tx, ty - tongueLen);
-          ctx.lineTo(tx + 1.8, ty - tongueLen - 2);
+          ctx.lineTo(tx + forkWidth, ty - tongueLen - forkLen);
           ctx.stroke();
         } else if (this.dir.y === 1) { // 向下
           ty = hy + cs - 1;
           ctx.beginPath();
           ctx.moveTo(tx, ty);
           ctx.lineTo(tx, ty + tongueLen);
-          ctx.lineTo(tx - 1.8, ty + tongueLen + 2);
+          ctx.lineTo(tx - forkWidth, ty + tongueLen + forkLen);
           ctx.moveTo(tx, ty + tongueLen);
-          ctx.lineTo(tx + 1.8, ty + tongueLen + 2);
+          ctx.lineTo(tx + forkWidth, ty + tongueLen + forkLen);
           ctx.stroke();
         }
         ctx.restore();
       }
 
-      // 蛇头眼睛（眼白 + 瞳孔偏移朝向）
-      let e1x = hx + 4, e1y = hy + 4;
-      let e2x = hx + cs - 7, e2y = hy + 4;
+      // 蛇头眼睛（眼白 + 瞳孔偏移朝向，按比例缩放适配 20px / 28px 网格）
+      const eyeScale = cs / 20;
+      let e1x = hx + 4 * eyeScale, e1y = hy + 4 * eyeScale;
+      let e2x = hx + cs - 7 * eyeScale, e2y = hy + 4 * eyeScale;
       let pOffset = { x: 0, y: 0 };
 
       if (this.dir.x === 1) { // 右
-        e1x = hx + cs - 6; e1y = hy + 4.5;
-        e2x = hx + cs - 6; e2y = hy + cs - 7.5;
-        pOffset = { x: 0.8, y: 0 };
+        e1x = hx + cs - 6 * eyeScale; e1y = hy + 4.5 * eyeScale;
+        e2x = hx + cs - 6 * eyeScale; e2y = hy + cs - 7.5 * eyeScale;
+        pOffset = { x: 0.8 * eyeScale, y: 0 };
       } else if (this.dir.x === -1) { // 左
-        e1x = hx + 3.5; e1y = hy + 4.5;
-        e2x = hx + 3.5; e2y = hy + cs - 7.5;
-        pOffset = { x: -0.8, y: 0 };
+        e1x = hx + 3.5 * eyeScale; e1y = hy + 4.5 * eyeScale;
+        e2x = hx + 3.5 * eyeScale; e2y = hy + cs - 7.5 * eyeScale;
+        pOffset = { x: -0.8 * eyeScale, y: 0 };
       } else if (this.dir.y === -1) { // 上
-        e1x = hx + 4.5; e1y = hy + 3.5;
-        e2x = hx + cs - 7.5; e2y = hy + 3.5;
-        pOffset = { x: 0, y: -0.8 };
+        e1x = hx + 4.5 * eyeScale; e1y = hy + 3.5 * eyeScale;
+        e2x = hx + cs - 7.5 * eyeScale; e2y = hy + 3.5 * eyeScale;
+        pOffset = { x: 0, y: -0.8 * eyeScale };
       } else if (this.dir.y === 1) { // 下
-        e1x = hx + 4.5; e1y = hy + cs - 6;
-        e2x = hx + cs - 7.5; e2y = hy + cs - 6;
-        pOffset = { x: 0, y: 0.8 };
+        e1x = hx + 4.5 * eyeScale; e1y = hy + cs - 6 * eyeScale;
+        e2x = hx + cs - 7.5 * eyeScale; e2y = hy + cs - 6 * eyeScale;
+        pOffset = { x: 0, y: 0.8 * eyeScale };
       }
 
       // 绘制眼白
       ctx.save();
       ctx.fillStyle = tokens.snakeEye;
       ctx.beginPath();
-      ctx.arc(e1x + 1.5, e1y + 1.5, 2.3, 0, Math.PI * 2);
-      ctx.arc(e2x + 1.5, e2y + 1.5, 2.3, 0, Math.PI * 2);
+      ctx.arc(e1x + 1.5 * eyeScale, e1y + 1.5 * eyeScale, 2.3 * eyeScale, 0, Math.PI * 2);
+      ctx.arc(e2x + 1.5 * eyeScale, e2y + 1.5 * eyeScale, 2.3 * eyeScale, 0, Math.PI * 2);
       ctx.fill();
 
       // 绘制黑眼珠（瞳孔跟随方向偏移）
       ctx.fillStyle = tokens.snakePupil;
       ctx.beginPath();
-      ctx.arc(e1x + 1.5 + pOffset.x, e1y + 1.5 + pOffset.y, 1.2, 0, Math.PI * 2);
-      ctx.arc(e2x + 1.5 + pOffset.x, e2y + 1.5 + pOffset.y, 1.2, 0, Math.PI * 2);
+      ctx.arc(e1x + 1.5 * eyeScale + pOffset.x, e1y + 1.5 * eyeScale + pOffset.y, 1.2 * eyeScale, 0, Math.PI * 2);
+      ctx.arc(e2x + 1.5 * eyeScale + pOffset.x, e2y + 1.5 * eyeScale + pOffset.y, 1.2 * eyeScale, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
     }
